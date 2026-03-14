@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Estime de soi</title>
+  <title>Mon estime de soi</title>
   <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -22,167 +22,240 @@
 <script type="text/babel">
   const { useState, useEffect, useRef } = React;
 
-  const ACCENT="#8B6F5E", DARK="#2a1f1a", MID="#6b5246", BG="#F0ECE6", BG2="#F7F4F0", LIGHT="#aaaaaa";
+  const DARK="#2a1f1a", MID="#6b5246", BG="#F0ECE6", BG2="#F7F4F0", LIGHT="#aaaaaa", ACCENT="#8B6F5E";
   const EMAILJS_SERVICE_ID  = "service_0kouxat";
   const EMAILJS_TEMPLATE_ID = "template_kt263tv";
   const EMAILJS_PUBLIC_KEY  = "uhjbdrXFqWGx4Rltl";
 
-  const DIMS = {
-    QJS: { id:"QJS", label:"Qui je suis",           icon:"🧭", color:"#5C7A6E", light:"#EDF4F1", border:"#B2D4CA" },
-    RDS: { id:"RDS", label:"Le regard sur soi",     icon:"👁️", color:"#7A5C8B", light:"#F3EDF7", border:"#C9B2D4" },
-    ADS: { id:"ADS", label:"L'amour de soi",        icon:"🌸", color:"#B85C6E", light:"#FDF0F2", border:"#E8B8C2" },
-    VAL: { id:"VAL", label:"La boussole des valeurs",icon:"🧿", color:"#8B6F5E", light:"#F5F0ED", border:"#D4B8A8" },
+  // ─── 12 PROFILS (6 traits de base + Confiant Créateur + 5 troubles) ──────────
+  const TYPES = {
+    CONFIANT:   {id:"CONFIANT",   famille:"Métabolisé", niveau:"métabolisé", label:"Le/La Confiant(e)",    icon:"🌿", color:"#4A7C6E", light:"#EBF5F2", border:"#A8D4CA", famColor:"#4A7C6E", famBg:"#EBF5F2",
+      resume:"Tu participes au monde naturellement, sans avoir besoin qu'il tourne autour de toi ni sans en disparaître. Tu te sens suffisamment solide pour aller vers les autres, prendre des risques et traverser les épreuves.",
+      portrait:`Tu incarnes une estime de soi équilibrée — ce qu'on appelle «métabolisée». Tu n'es ni dans l'effacement ni dans la démonstration. Tu prends ta place sans l'imposer, tu participes au monde sans en dépendre.\n\nTa confiance n'est pas l'absence de doute — c'est la capacité à douter sans se perdre. Tu peux traverser les critiques, les échecs ou les incertitudes sans que cela remette en cause qui tu es fondamentalement.\n\nIl y a en toi une dimension créatrice : tu aimes apporter quelque chose, contribuer à quelque chose qui a du sens. Pas forcément artistique — mais l'idée de laisser une trace, d'ajouter de la valeur au monde t'anime naturellement.`,
+      forces:["Stabilité intérieure face aux aléas","Capacité à donner sans se perdre","Confiance qui n'a pas besoin d'être prouvée","Résilience face aux épreuves et aux critiques"],
+      points:["Peut être incompris(e) par des profils plus insécures","Peut sous-estimer ses propres besoins","La sécurité peut se fragiliser sous stress prolongé"],
+      conseils:["💬 Ta confiance est une ressource précieuse — mais elle mérite d'être entretenue. Les périodes de grand stress ou de deuil peuvent temporairement fragiliser ce qui semble solide.","💬 Tu as naturellement une capacité créatrice. T'interroger sur ce que tu veux vraiment construire ou transmettre peut être un levier de sens et d'épanouissement.","💬 Ton équilibre peut être mis à l'épreuve dans des relations avec des profils très insécures. Nommer la dynamique t'aide à rester ancré(e) sans te laisser absorber."]},
+    EFFACE:     {id:"EFFACE",     famille:"Hypo",        niveau:"trait", label:"L'Effacé(e)",          icon:"🌫️", color:"#6E7FA8", light:"#EEF1F8", border:"#B8C4DC", famColor:"#5A6E9E", famBg:"#E8ECF6",
+      resume:"Tu t'organises pour te faire oublier, laisser la place aux autres, ne pas déranger. Tu vas vers le besoin de l'autre avant même de consulter le tien. Le monde peut très bien tourner sans toi — c'est souvent ce que tu crois.",
+      portrait:`Ton style d'estime est hypo : tu te mets en retrait, pas par modestie, mais parce que quelque chose en toi croit que ta place est petite, voire inexistante.\n\nTu as appris à t'organiser autour des besoins des autres — parfois si naturellement que tu ne t'en rends plus compte. Tu anticipes, tu t'adaptes, tu cèdes. Et au fond, tu peux trouver «normal» d'être en second plan, voire d'être maltraité(e).\n\nTa discrétion est réelle, mais elle te coûte. Elle t'expose aussi : les personnes à fort ego ont souvent un «radar» pour repérer ceux qui ne défendent pas leur place. Non par méchanceté de ta part — mais parce que tu n'as pas encore intégré que ta présence a de la valeur en elle-même.`,
+      forces:["Écoute fine et empathie profonde","Capacité à s'adapter et à prendre soin","Peu d'arrogance ou de besoin de dominer","Douceur dans le contact avec les autres"],
+      points:["Tendance à s'effacer au détriment de ses propres besoins","Attire parfois des personnes qui profitent de cette discrétion","Difficulté à poser des limites ou à prendre de la place"],
+      conseils:["💬 L'effacement n'est pas de la générosité — c'est souvent une façon ancienne de se protéger en se rendant petit(e). Nommer ça est déjà un premier pas.","💬 Apprendre à consulter ton propre besoin avant de répondre à celui de l'autre est un travail lent mais transformateur. La question «et moi, qu'est-ce que je veux ?» mérite d'être posée régulièrement.","💬 Un accompagnement peut t'aider à explorer d'où vient ce réflexe d'effacement et à réapprendre que ta place — ta vraie place — est légitime."]},
+    DOUTANT:    {id:"DOUTANT",    famille:"Hypo",        niveau:"trait", label:"Le/La Doutant(e)",     icon:"🌀", color:"#7A6EA8", light:"#F0EEF8", border:"#C4B8DC", famColor:"#5A6E9E", famBg:"#E8ECF6",
+      resume:"Tu hésites, tu remets en question, tu t'auto-invalides. L'énergie est là, mais elle reste dans la tête — en mouvement permanent, sans jamais se poser dans une décision ou une action.",
+      portrait:`Contrairement à l'effacé qui reste dans son retrait, toi tu voudrais avancer — mais quelque chose bloque. L'énergie tourne, les idées foisonnent, les possibilités s'empilent… et au final, rien ne se met en place.\n\nTu doutes de toi, de tes choix, et parfois de l'humanité tout entière. Ton discours intérieur est souvent négatif, ton imaginaire teinté de scénarios sombres. L'angoisse s'exprime par le doute plutôt que par la panique — mais elle est bien là.\n\nIl y a quelque chose d'épuisant dans cette façon de fonctionner : l'énergie mobilisée est réelle, mais elle ne trouve pas de sortie vers l'action. Tu t'auto-invalides avant même d'essayer — «à quoi bon», «ça ne marchera pas», «ce n'est pas pour moi».`,
+      forces:["Capacité d'analyse et de réflexion profonde","Prudence naturelle face aux décisions importantes","Sensibilité aux nuances et à la complexité","Potentiel de transformation une fois le blocage levé"],
+      points:["Difficulté à passer à l'action et à décider","Épuisement lié au mouvement intérieur permanent","Discours intérieur très auto-critique","Tendance à s'invalider avant même d'essayer"],
+      conseils:["💬 Le doute chronique est souvent une angoisse déguisée. Ce n'est pas un manque d'intelligence — c'est une émotion qui cherche à se faire entendre autrement.","💬 Travailler sur la régulation émotionnelle (et non sur la prise de décision) est souvent la vraie clé. Quand l'angoisse diminue, les choix deviennent plus accessibles.","💬 Un accompagnement ciblé peut t'aider à distinguer ce qui relève d'une vraie réflexion et ce qui relève d'une auto-invalidation automatique — et à laisser l'énergie se poser enfin dans l'action."]},
+    FLAMBOYANT: {id:"FLAMBOYANT", famille:"Hyper",       niveau:"trait", label:"Le/La Flamboyant(e)", icon:"🔥", color:"#C97A3A", light:"#FDF3EB", border:"#E8C09A", famColor:"#B85C2E", famBg:"#FDF0E8",
+      resume:"Tu occupes l'espace, tu aimes briller, tu te mets en avant. Tu es très sensible aux compliments — et très vulnérable à la critique, qui touche directement ton être, pas juste tes actes.",
+      portrait:`Ton style d'estime est hyper : tu as besoin que le monde te voit, te reconnaisse, t'admire. Ce n'est pas de l'arrogance superficielle — c'est une façon de couvrir des failles profondes que tu n'as pas envie de montrer.\n\nTu es intelligent(e), souvent séduisant(e), tu sais occuper une pièce. Les compliments te nourrissent, et les critiques te blessent bien plus profondément que tu ne veux l'admettre — parce que te critiquer, c'est attaquer ton être, pas juste un de tes actes.\n\nIl peut t'arriver d'être méprisant(e) envers les autres — pointer leurs failles, les regarder de haut. C'est une façon de garder l'avantage, de ne jamais être en position de vulnérabilité. Mais cette armure a un coût : elle maintient les autres à distance et toi dans un rôle épuisant à tenir.`,
+      forces:["Charisme et capacité à entraîner les autres","Intelligence et présence remarquée","Ambition et goût de l'excellence","Énergie et engagement dans ce qui te passionne"],
+      points:["Vulnérabilité masquée derrière une façade forte","Difficulté à tolérer la critique sans se sentir attaqué(e)","Dépendance au regard et à la validation extérieure"],
+      conseils:["💬 La flamboyance est souvent une armure construite tôt pour ne pas montrer qu'on se sent insuffisant(e). Reconnaître ça intérieurement est un acte de courage réel.","💬 Travailler à distinguer la critique de l'attaque personnelle est une compétence clé pour toi. Ce n'est pas ta valeur qui est remise en cause — c'est un acte, un comportement, une idée.","💬 La dépression narcissique guette parfois avec l'âge ou les échecs. Un accompagnement préventif, avant d'en arriver là, est souvent plus efficace."]},
+    SOUHAIT:    {id:"SOUHAIT",    famille:"Hyper",       niveau:"trait", label:"Le/La Souhaitant(e)", icon:"☁️", color:"#8B7AB8", light:"#F3F0FA", border:"#C8BCE8", famColor:"#B85C2E", famBg:"#FDF0E8",
+      resume:"Tu as une haute idée de toi-même, mais tu restes dans le fantasme. Tu accumules les formations, les projets, les rêves — sans jamais tout à fait passer à l'action ni te confronter à la réalité.",
+      portrait:`Il y a en toi une image grandiose de ce que tu pourrais être, accomplir, devenir. Cette image est sincère — mais elle reste dans le domaine du souhait. Quelque chose t'empêche de la confronter au principe de réalité.\n\nTu enchaînes peut-être les formations sans t'en servir, les projets sans les finaliser, les plans sans les mettre en œuvre. Ce n'est pas de la paresse — c'est que l'idée de toi-même est trop haute pour risquer l'échec. Agir, c'est se confronter à une limite possible. Et cette limite-là serait insupportable.\n\nIl y a aussi une dimension de démesure dans tes aspirations : ce que tu imagines dépasse souvent ce qui est réalisable, non pas par manque de capacités, mais parce que l'énergie reste bloquée dans la grandiosité plutôt que de se déposer dans l'action concrète.`,
+      forces:["Vision large et pensée ambitieuse","Richesse imaginaire et créativité","Capacité de projection et d'inspiration","Potentiel réel — souvent sous-exploité"],
+      points:["Difficulté à aller au contact du réel et de ses limites","Accumulation sans finalisation ni utilisation","Énergie bloquée dans le fantasme plutôt que dans l'action"],
+      conseils:["💬 Le fossé entre qui tu imagines être et qui tu es dans le concret peut être une source de souffrance silencieuse. La nommer est déjà un acte courageux.","💬 L'enjeu pour toi n'est pas de revoir tes ambitions à la baisse — c'est d'apprendre à tolérer la confrontation au réel. C'est là que la vraie estime se construit.","💬 Un travail sur l'action concrète, pas à pas, même imparfaite, est souvent plus transformateur que de continuer à préparer le terrain. «Fait» vaut mieux que «parfait»."]},
+    COMBAT:     {id:"COMBAT",     famille:"Hyper",       niveau:"trait", label:"Le/La Combattant(e)", icon:"⚡", color:"#B85C3A", light:"#FCF0EC", border:"#E8C0B0", famColor:"#B85C2E", famBg:"#FDF0E8",
+      resume:"Tu cherches le contact — mais souvent sous forme de friction, d'opposition, de combat. Tu es dans le contre, dans la résistance permanente. Ton ego est fort, et il a du mal à tolérer la contradiction sans la vivre comme une menace.",
+      portrait:`Tu vas au contact — mais le contact pour toi prend souvent la forme d'une confrontation. Tu te retrouves régulièrement en opposition : avec les idées, les personnes, les systèmes. Quelque chose en toi résiste, contre-argumente, défend son territoire.\n\nCe n'est pas forcément de la malveillance — c'est un mode de relation où l'énergie s'active fortement dès qu'elle perçoit une remise en cause. Ton ego est important, et il supporte mal d'être en position basse, d'avoir tort, ou d'être ignoré.\n\nIl y a une vraie force dans cette façon d'être — une capacité à se battre pour ce qui compte, à ne pas se laisser écraser. Mais quand ce mode de combat devient permanent et indiscriminé, il épuise les relations et finit par isoler.`,
+      forces:["Énergie et capacité à défendre ses positions","Courage pour aller au contact et affronter les conflits","Détermination et persistance face aux obstacles","Ne se laisse pas facilement écraser ou dominer"],
+      points:["Opposition quasi-systématique, même hors de propos","Difficulté à tolérer la contradiction","Ego envahissant qui peut fermer les portes"],
+      conseils:["💬 Le combat permanent est épuisant — pour toi, et pour les autres. Se demander «est-ce que je combats parce que c'est juste, ou parce que ça m'est insupportable de ne pas gagner ?» est une question puissante.","💬 Apprendre à distinguer les combats qui méritent ton énergie de ceux qui ne la méritent pas est une compétence clé. Tout ne mérite pas d'être une bataille.","💬 Un travail sur la tolérance à l'impuissance et à la vulnérabilité peut transformer ta façon d'aller au contact — en gardant ta force, mais en l'orientant différemment."]},
+
+    // ─── MÉTABOLISÉ AVANCÉ ───────────────────────────────────────────────────────
+    CONFIANT_CREATEUR: {id:"CONFIANT_CREATEUR", famille:"Métabolisé", niveau:"métabolisé", label:"Le/La Confiant(e) Créateur/Créatrice", icon:"🌱", color:"#2E7D5E", light:"#E5F5EE", border:"#8CCFB0", famColor:"#4A7C6E", famBg:"#EBF5F2",
+      resume:"Ta confiance est pleinement intégrée — et elle se tourne naturellement vers quelque chose à construire ou à transmettre. Pas forcément artistique : plutôt une dimension de sens, d'apport, de valeur ajoutée pour le monde autour de toi.",
+      portrait:`Tu représentes le niveau le plus intégré de l'estime de soi : une confiance qui ne cherche plus à se prouver, qui ne compense rien, et qui se tourne naturellement vers quelque chose à créer ou à transmettre.\n\nIl y a en toi une dimension créatrice au sens large — l'idée d'apporter une valeur ajoutée au monde, de laisser une trace qui a du sens. Ce n'est pas nécessairement artistique : ça peut prendre la forme d'un projet, d'une façon d'être en contact avec les autres, ou d'un engagement dans quelque chose de plus grand que soi.\n\nTu es plus un facteur de résilience qu'un facteur de risque — pour toi, mais aussi pour ceux qui t'entourent. Ta stabilité intérieure crée de l'espace pour les autres sans que tu aies besoin de t'effacer ou de briller pour cela.`,
+      forces:["Confiance pleinement intégrée, sans besoin de la prouver","Élan créateur orienté vers quelque chose de sens","Résilience forte face aux épreuves et aux critiques","Présence stabilisante pour les personnes autour de toi"],
+      points:["Peut être peu compris(e) par des profils plus insécures","Risque de sous-estimer ses propres besoins au profit des autres","Les périodes de doute peuvent surprendre par contraste avec l'habituel"],
+      conseils:["💬 Ta confiance est une ressource rare — mais elle mérite d'être nourrie consciemment. Se demander ce qu'on veut vraiment créer ou transmettre reste une question précieuse, même à ce niveau.","💬 L'enjeu pour toi n'est souvent pas de construire l'estime, mais de l'orienter. Vers quoi veux-tu diriger cette énergie créatrice ? Cette question peut devenir un axe de développement profond.","💬 Ton équilibre peut être mis à l'épreuve par des environnements ou des relations très déséquilibrés. Identifier ce qui te ressource réellement est une façon de rester ancré(e) dans la durée."]},
+
+    // ─── TROUBLES HYPO ───────────────────────────────────────────────────────────
+    UTILISE: {id:"UTILISE", famille:"Hypo", niveau:"trouble", label:"L'Utilisé(e)", icon:"🌫️", color:"#3A4E80", light:"#E8EBF5", border:"#8E9DC8", famColor:"#5A6E9E", famBg:"#E8ECF6",
+      resume:"Tu vas vers les besoins de l'autre avant même de consulter les tiens — et tu t'es organisé(e), souvent inconsciemment, pour attirer des situations où tu es en position de donner sans recevoir. Quelque chose en toi a normalisé le fait d'être en second plan, voire d'être maltraité(e).",
+      portrait:`L'effacement, dans sa forme la plus ancrée, ne se contente plus de disparaître en retrait. Il organise la vie autour de l'autre — et parfois autour des personnes qui prendront ce qu'on leur offre sans le nommer ni le rendre.\n\nTu peux te retrouver régulièrement dans des situations de maltraitance relationnelle, professionnelle ou affective — non par hasard, mais parce qu'une partie de toi a intégré que c'est la place qui te revient. Il n'y a pas de jugement là-dedans : c'est une adaptation ancienne, construite pour survivre dans un environnement qui ne t'a pas laissé plus de place.\n\nLes personnes à fort ego ont souvent un «radar» pour repérer ceux qui ne défendent pas leur place. Tu ne les attires pas parce que tu es faible — mais parce que tu n'as pas encore pleinement intégré que ta présence a de la valeur en elle-même.`,
+      forces:["Empathie profonde et sens aigu des besoins de l'autre","Douceur et discrétion dans les relations","Grande capacité d'adaptation","Potentiel de transformation important une fois le travail enclenché"],
+      points:["Tendance à normaliser des situations maltraitantes ou exploitantes","Difficulté forte à poser des limites ou exprimer ses besoins","Peut inconsciemment faciliter le harcèlement ou l'exploitation","Estime de soi très fragilisée au niveau fondamental"],
+      conseils:["💬 Ce n'est pas ta faute — et ce n'est pas non plus ta nature. C'est une façon apprise, souvent très tôt, de te rendre acceptable. Elle peut évoluer, mais cela demande un espace sécurisé et un accompagnement patient.","💬 Sortir de ce pattern ne passe pas par plus d'efforts envers les autres — ça passe par apprendre à consulter ton propre besoin avant de répondre à celui de l'autre. Un réflexe à cultiver progressivement.","💬 Un accompagnement thérapeutique est fortement recommandé. Ce niveau d'effacement mérite un espace pour explorer d'où il vient, ce qu'il protège — et comment reconstruire ta place."]},
+
+    SCEPTIQUE: {id:"SCEPTIQUE", famille:"Hypo", niveau:"trouble", label:"Le/La Sceptique", icon:"🌀", color:"#5E4E98", light:"#EDEAF7", border:"#B0A8DC", famColor:"#5A6E9E", famBg:"#E8ECF6",
+      resume:"Tu t'auto-invalides en permanence — non seulement tes choix, mais toi-même, et parfois l'humanité entière. Le discours intérieur est très négatif, l'imaginaire sombre, et une angoisse profonde s'exprime à travers un doute qui ne s'arrête jamais.",
+      portrait:`Le doute, à ce niveau, n'est plus un outil de réflexion — c'est une façon de vivre. Une angoisse profonde qui s'exprime non pas en cris, mais en hésitations perpétuelles, en remises en question qui ne trouvent jamais de résolution.\n\nTu doutes de toi avec une intensité particulière : non seulement de tes choix, mais de ta valeur, de tes capacités, de ta légitimité. Tu doutes aussi des autres et de la manière dont les choses peuvent s'arranger — le monde lui-même semble peu fiable.\n\nTon discours intérieur est nourri de scénarios sombres. Ton imaginaire anticipe le pire avec une constance qui épuise. Ce n'est pas du pessimisme intellectuel : c'est une angoisse qui n'a pas trouvé d'autre langage pour se dire.`,
+      forces:["Profondeur d'analyse et de réflexion réelle","Sensibilité fine aux nuances et aux contradictions","Capacité à percevoir ce que d'autres ne voient pas","Fort potentiel de transformation avec un accompagnement adapté"],
+      points:["Auto-invalidation permanente, avant même d'avoir essayé","Discours intérieur et imaginaire très négatifs","Doute de soi, des autres et du monde simultanément","Angoisse chronique souvent non nommée comme telle"],
+      conseils:["💬 Ce niveau de doute est une souffrance réelle — pas un trait de caractère immuable. L'identifier clairement comme un symptôme, et non comme une vérité sur toi ou le monde, est déjà un premier acte thérapeutique.","💬 Le travail ici n'est pas «apprendre à décider» — c'est d'aller toucher l'angoisse sous-jacente. Les approches thérapeutiques ciblées (TCC, thérapies corporelles) peuvent créer des changements significatifs.","💬 Un accompagnement professionnel est fortement recommandé. Ce niveau de scepticisme et d'auto-invalidation mérite un espace sécurisé pour être exploré et transformé en profondeur."]},
+
+    // ─── TROUBLES HYPER ──────────────────────────────────────────────────────────
+    MEPRISANT: {id:"MEPRISANT", famille:"Hyper", niveau:"trouble", label:"Le/La Méprisant(e)", icon:"🔥", color:"#B06020", light:"#FCF0E8", border:"#E8B080", famColor:"#B85C2E", famBg:"#FDF0E8",
+      resume:"Ta façon de couvrir tes failles profondes passe par l'attaque : pointer les erreurs des autres, les regarder de haut, critiquer avec un mépris qui maintient les autres à distance et toi en position dominante. La vulnérabilité est là — elle se convertit en offensive.",
+      portrait:`La flamboyance, dans sa forme la plus défensive, se transforme en arme. Ce n'est plus seulement briller — c'est s'assurer que les autres ne brillent pas trop près. La critique méprisante, le doigt pointé sur les failles de l'autre, le regard qui regarde de haut : autant de façons de garder l'avantage.\n\nTu es très vulnérable à la critique — mais cette vulnérabilité, tu ne peux pas te permettre de la montrer. Alors elle se convertit en attaque préventive : invalider l'autre avant qu'il ne puisse t'invalider.\n\nIl y a une vraie intelligence dans ce fonctionnement — une lecture fine des gens, une capacité à percevoir leurs failles. Mais utilisée ainsi, elle coupe le contact réel et maintient une solitude que la mise en scène de soi ne comble pas.`,
+      forces:["Intelligence acérée et lecture fine des personnes","Capacité à tenir une position malgré la pression","Présence forte et remarquée","Potentiel de leadership réel si les défenses s'assouplissent"],
+      points:["Mépris et attaques qui abîment durablement les relations","Vulnérabilité profonde masquée derrière l'offensive","Difficulté à laisser l'autre exister pleinement","Solitude relationnelle souvent non reconnue comme telle"],
+      conseils:["💬 Le mépris est presque toujours une façon de ne pas montrer qu'on a peur. Se demander «de quoi est-ce que je me protège en ce moment ?» peut ouvrir vers quelque chose de plus vrai.","💬 Un travail sur la vulnérabilité — pas pour l'exposer aux autres, mais pour te permettre de la connaître toi-même — est souvent central à ce niveau d'estime.","💬 La dépression narcissique est un risque réel avec l'âge ou les revers importants. Un accompagnement avant d'en arriver là est toujours plus efficace que la gestion de crise."]},
+
+    GRANDIOSE: {id:"GRANDIOSE", famille:"Hyper", niveau:"trouble", label:"Le/La Grandiose", icon:"☁️", color:"#6A58A8", light:"#EEEAF8", border:"#B8B0E0", famColor:"#B85C2E", famBg:"#FDF0E8",
+      resume:"Tes aspirations sont d'une hauteur difficile à habiter concrètement. L'image de toi-même est grandiose — mais l'énergie reste bloquée dans la démesure, incapable de se déposer dans quelque chose de réel et de limité.",
+      portrait:`Ce n'est pas le désir d'être grand(e) qui pose problème — c'est que l'idée de toi-même dépasse tellement le concret qu'il n'y a plus rien de réalisable qui soit à la hauteur. La grandiosité n'est pas un rêve qu'on vise : c'est un état où l'on est déjà, dans la tête, et qui rend tout le reste décevant d'avance.\n\nTu enchaînes peut-être les formations, les projets, les plans — sans jamais les finaliser ni t'en servir. Pas par paresse, mais parce que l'agir se confronte à la limite, et la limite serait insupportable à la hauteur de l'image que tu as de toi.\n\nIl y a une vraie démesure dans ce que tu imagines. Et cette démesure bloque l'énergie : elle ne peut pas aller se confronter au principe de réalité sans risquer d'effondrer quelque chose de fondamental.`,
+      forces:["Vision large et pensée à grande échelle","Richesse imaginaire et capacité d'inspiration","Potentiel réel, souvent considérable","Intensité de l'aspiration qui peut, canalisée, devenir un vrai moteur"],
+      points:["Énergie bloquée dans la grandiosité plutôt que dans l'action","Difficulté forte à tolérer la confrontation au réel","Accumulation sans finalisation ni utilisation réelle","Souffrance silencieuse liée au fossé entre l'image et la réalité vécue"],
+      conseils:["💬 Le fossé entre l'image grandiose et la vie concrète crée une souffrance réelle — souvent silencieuse, car difficile à admettre. La nommer est déjà un acte de courage considerable.","💬 L'enjeu n'est pas de revoir tes ambitions à la baisse. C'est d'apprendre à tolérer d'être limité(e) — et de découvrir que les limites ne détruisent pas l'image, elles lui permettent de prendre forme.","💬 Un accompagnement thérapeutique peut t'aider à explorer ce que cette grandiosité protège — et à ouvrir un chemin vers une estime ancrée dans le réel, sans perdre la vision."]},
+
+    COMBAT_TROUBLE: {id:"COMBAT_TROUBLE", famille:"Hyper", niveau:"trouble", label:"Le/La Combattant(e) — Niveau critique", icon:"⚡", color:"#8E3020", light:"#FAEBE8", border:"#D89080", famColor:"#B85C2E", famBg:"#FDF0E8",
+      resume:"Au-delà du combat, quelque chose de plus sombre opère : une tendance à utiliser la relation comme terrain de pouvoir, à prendre plaisir à la domination ou à la blessure de l'autre. La haine et la rage alimentent un besoin de détruire pour sentir sa propre existence.",
+      portrait:`Ce niveau va au-delà du simple conflit ou de la difficulté à tolérer la contradiction. Il s'agit d'une dynamique où la relation elle-même devient un espace de pouvoir et de contrôle — parfois consciemment, parfois non.\n\nLa souffrance de l'autre peut alimenter un sentiment d'existence, de puissance ou de sécurité. Il y a une part de «plaisir» dans la blessure infligée — non par sadisme simple, mais parce que cela confirme qu'on existe, qu'on a de l'effet sur le monde.\n\nIl y a souvent derrière ce fonctionnement une blessure très profonde, très ancienne — une façon de ne jamais être en position de vulnérabilité en faisant en sorte que l'autre soit toujours plus bas. C'est une armure extrême, et elle coûte enormément.`,
+      forces:["Intelligence des dynamiques relationnelles et de pouvoir","Énergie et détermination à toute épreuve","Capacité à endurer et à persister dans l'adversité"],
+      points:["Tendance à nuire dans les relations proches","Difficulté à respecter les limites de l'autre","Dynamique relationnelle souvent destructrice pour les deux parties","Isolement progressif des personnes authentiques"],
+      conseils:["💬 Si tu te reconnais dans cette description, il est important de l'accueillir sans te condamner — mais sans le minimiser non plus. C'est une souffrance ancienne qui s'est organisée en mode de survie extrême.","💬 Ce niveau de fonctionnement demande un accompagnement thérapeutique spécialisé. Il ne s'agit pas de «volonté» ou de «bonne résolution» — c'est un travail en profondeur sur des blessures fondamentales.","💬 ⚠️ Si tu remarques que tu imposes cette souffrance aux autres — ou que tu la vis de leur part — chercher de l'aide est l'acte le plus courageux et le plus juste que tu puisses poser."]},
   };
 
-  const THEMES = [
-    {
-      id:"QJS", title:"Qui je suis", icon:"🧭",
-      subtitle:"Ta clarté identitaire — à quel point tu te connais toi-même, tu restes ancré(e) dans qui tu es, et tu sais ce qui te définit vraiment.",
-      questions:[
-        {id:"q1",  dim:"QJS", dir:+1, text:"Je sais clairement ce qui est important pour moi — mes valeurs, ce qui me tient vraiment à cœur."},
-        {id:"q2",  dim:"QJS", dir:-1, text:"Je change d'opinion ou d'attitude selon la personne à qui je parle, sans vraiment m'en rendre compte."},
-        {id:"q3",  dim:"QJS", dir:+1, text:"Je peux nommer ce qui me rend unique — mes forces, ma façon particulière de voir les choses."},
-        {id:"q4",  dim:"QJS", dir:-1, text:"J'ai du mal à savoir ce que je veux vraiment, indépendamment de ce que les autres attendent de moi."},
-        {id:"q5",  dim:"QJS", dir:+1, text:"Dans les situations difficiles, je reste en contact avec qui je suis — je ne me perds pas dans l'autre."},
-        {id:"q6",  dim:"QJS", dir:-1, text:"Je me sens souvent «aspiré(e)» par la personnalité ou les attentes des gens autour de moi."},
-        {id:"q7",  dim:"QJS", dir:+1, text:"J'ai un rapport stable à mes propres convictions, même quand on les remet en question."},
-        {id:"q8",  dim:"QJS", dir:-1, text:"Quand quelqu'un me critique fortement, je remets en question des aspects fondamentaux de qui je suis."},
-      ]
-    },
-    {
-      id:"RDS", title:"Le regard sur soi", icon:"👁️",
-      subtitle:"Ta relation au regard des autres et la vision que tu as de toi-même — comment tu te perçois, et à quel point tu dépends de l'extérieur pour te sentir bien.",
-      questions:[
-        {id:"q9",  dim:"RDS", dir:-1, text:"J'ai besoin que les autres m'approuvent ou m'apprécient pour me sentir bien dans ma peau."},
-        {id:"q10", dim:"RDS", dir:+1, text:"L'opinion des autres m'intéresse, mais elle ne définit pas ma valeur à mes propres yeux."},
-        {id:"q11", dim:"RDS", dir:-1, text:"Je modifie souvent ce que je dis ou montre de moi pour ne pas être jugé(e) ou mal perçu(e)."},
-        {id:"q12", dim:"RDS", dir:-1, text:"Une critique, même légère, peut déstabiliser mon image de moi pour longtemps."},
-        {id:"q13", dim:"RDS", dir:+1, text:"Je peux recevoir un désaccord ou une critique sans me sentir attaqué(e) dans ma valeur profonde."},
-        {id:"q14", dim:"RDS", dir:-1, text:"Je me compare régulièrement aux autres et j'en ressors souvent avec un sentiment d'infériorité."},
-        {id:"q15", dim:"RDS", dir:-1, text:"La peur du regard des autres limite ce que j'ose dire, faire ou montrer dans ma vie."},
-        {id:"q16", dim:"RDS", dir:-1, text:"Je ressens souvent un décalage inconfortable entre ce que je montre aux autres et qui je suis vraiment."},
-      ]
-    },
-    {
-      id:"ADS", title:"L'amour de soi", icon:"🌸",
-      subtitle:"Ta voix intérieure, ta capacité à te traiter avec bienveillance et douceur, et ton rapport à tes propres imperfections.",
-      questions:[
-        {id:"q17", dim:"ADS", dir:-1, text:"Ma voix intérieure est souvent plus dure et exigeante envers moi qu'elle ne le serait envers n'importe qui d'autre."},
-        {id:"q18", dim:"ADS", dir:+1, text:"Je peux me reposer, prendre du plaisir, sans culpabilité ni sentiment de ne pas le mériter."},
-        {id:"q19", dim:"ADS", dir:-1, text:"Quand je fais une erreur, je me juge très sévèrement et j'ai du mal à m'en remettre."},
-        {id:"q20", dim:"ADS", dir:+1, text:"Je peux m'offrir de la compassion dans les moments difficiles, comme je le ferais pour un ami proche."},
-        {id:"q21", dim:"ADS", dir:-1, text:"J'ai souvent le sentiment de ne pas être assez — pas assez bien, pas assez accompli(e), pas assez intéressant(e)."},
-        {id:"q22", dim:"ADS", dir:+1, text:"Je peux reconnaître mes qualités et mes réussites sans les minimiser ou les attribuer à la chance."},
-        {id:"q23", dim:"ADS", dir:-1, text:"Il m'arrive de ressentir de la honte à propos de certaines parties de moi que je cache ou voudrais effacer."},
-        {id:"q24", dim:"ADS", dir:+1, text:"Même dans mes imperfections, je peux me regarder avec une certaine douceur et acceptation."},
-      ]
-    },
-    {
-      id:"VAL", title:"La boussole des valeurs", icon:"🧿",
-      subtitle:"À quel point tu vis en accord avec ce qui compte vraiment pour toi — et comment tu navigues quand tu t'en éloignes.",
-      questions:[
-        {id:"q25", dim:"VAL", dir:+1, text:"Je sais identifier les moments où mes actions ne sont pas alignées avec ce qui compte vraiment pour moi."},
-        {id:"q26", dim:"VAL", dir:-1, text:"Je me retrouve souvent à faire des choses qui ne correspondent pas à mes valeurs profondes, sans réussir à changer."},
-        {id:"q27", dim:"VAL", dir:+1, text:"Quand je m'éloigne de mes valeurs, je peux le reconnaître sans me condamner, et chercher à me réajuster."},
-        {id:"q28", dim:"VAL", dir:-1, text:"Je sors rarement de ma zone de confort — j'évite les situations nouvelles ou risquées même quand elles pourraient me faire grandir."},
-        {id:"q29", dim:"VAL", dir:+1, text:"Je prends régulièrement des risques ou relève des défis qui me font sortir de ma zone de confort, même si c'est inconfortable."},
-        {id:"q30", dim:"VAL", dir:-1, text:"J'ai du mal à identifier des petites choses du quotidien dont je suis fier(e) — mes «victoires simples» passent souvent inaperçues."},
-        {id:"q31", dim:"VAL", dir:+1, text:"Je peux nommer des choses concrètes que je fais dans ma vie qui font monter mon estime de moi."},
-        {id:"q32", dim:"VAL", dir:-1, text:"Je minimise souvent mes efforts avec des «c'est pas grand-chose» ou «n'importe qui aurait fait ça»."},
-      ]
-    },
-  ];
-
-  const LIKERT=[
-    {val:1,label:"Pas moi"},
-    {val:2,label:"Rarement"},
-    {val:3,label:"Parfois"},
-    {val:4,label:"Souvent"},
-    {val:5,label:"Tout à fait moi"},
-  ];
-
-  function getLevel(pct){
-    if(pct>=70) return {label:"Solide",          color:"#4CAF50", bg:"#f0fdf4", border:"#c8e6c9"};
-    if(pct>=48) return {label:"En construction", color:"#F57C00", bg:"#fff8f0", border:"#ffcc80"};
-    return             {label:"Fragilisée",      color:"#E53935", bg:"#ffebee", border:"#ffcdd2"};
-  }
-
-  function computeScores(answers){
-    const scores={};
-    THEMES.forEach(t=>{
-      let total=0;
-      t.questions.forEach(q=>{
-        const val=answers[q.id]||0;
-        total+=q.dir===+1?val:(6-val);
-      });
-      scores[t.id]=Math.round((total/(t.questions.length*5))*100);
-    });
-    scores.global=Math.round((scores.QJS+scores.RDS+scores.ADS+scores.VAL)/4);
-    return scores;
-  }
+  // ─── 4 DIMENSIONS (triangle) ─────────────────────────────────────────────────
+  const DIMS = {
+    QJS:{id:"QJS",label:"Qui je suis",        icon:"🧭",color:"#5C7A6E",light:"#EDF4F1",border:"#B2D4CA"},
+    RDS:{id:"RDS",label:"Le regard sur soi",  icon:"👁️",color:"#7A5C8B",light:"#F3EDF7",border:"#C9B2D4"},
+    ADS:{id:"ADS",label:"L'amour de soi",     icon:"🌸",color:"#B85C6E",light:"#FDF0F2",border:"#E8B8C2"},
+    VAL:{id:"VAL",label:"Boussole des valeurs",icon:"🧿",color:"#8B6F5E",light:"#F5F0ED",border:"#D4B8A8"},
+  };
 
   const DIM_PROFILES={
-    QJS:{
-      solide:{titre:"Une identité ancrée",texte:"Tu sais qui tu es — pas parfaitement, mais suffisamment pour ne pas te perdre quand les autres ou les circonstances te bousculent. Cette clarté identitaire est une ressource rare. Elle te permet de traverser les remises en question sans que le sol se dérobe sous tes pieds."},
-      moyen:{titre:"Une identité en chemin",texte:"Tu as des repères sur toi-même, mais ils peuvent vaciller selon les contextes ou les personnes. Il arrive que les attentes des autres prennent le dessus sur les tiennes. Mieux se connaître, c'est aussi mieux se tenir — c'est un travail vivant et continu."},
-      faible:{titre:"Une identité à clarifier",texte:"La question «qui je suis vraiment» semble encore ouverte, voire inconfortable. Tu peux te sentir influencé(e), instable ou peu sûr(e) de ce qui te définit. Ce n'est pas un manque — c'est souvent le point de départ d'un vrai travail de fond sur soi."},
-    },
-    RDS:{
-      solide:{titre:"Un regard ancré en toi",texte:"Tu n'es pas imperméable au regard des autres, mais tu n'en dépends pas. Tu peux recevoir une critique sans te sentir anéanti(e), et te montrer tel(le) que tu es sans trop de filtre. C'est une liberté intérieure précieuse."},
-      moyen:{titre:"Un regard encore dépendant",texte:"L'avis des autres compte — parfois trop. Une critique peut ébranler ton image de toi, et tu adaptes parfois ce que tu montres pour éviter le jugement. C'est humain, mais ça coûte. Ancrer ton regard en toi plutôt qu'en dehors fait partie du chemin."},
-      faible:{titre:"Un regard largement extérieur",texte:"Ton image de toi est fortement tributaire de ce que les autres pensent, disent ou font. La comparaison, la peur du jugement et la censure de toi-même sont des signaux que quelque chose mérite attention. C'est un terrain qui répond bien à l'accompagnement."},
-    },
-    ADS:{
-      solide:{titre:"Une relation à soi bienveillante",texte:"Tu sais te traiter avec douceur — pas systématiquement, mais souvent. Tu peux reconnaître tes réussites, t'offrir de la compassion dans les moments durs, et accepter tes imperfections sans te condamner. C'est le fondement de toute estime solide."},
-      moyen:{titre:"Un amour de soi à cultiver",texte:"Tu as des capacités de bienveillance envers toi-même, mais elles ne sont pas toujours au rendez-vous. La voix critique est souvent là, et elle sait être sévère. Il y a de la place pour développer une relation à toi-même plus douce et plus juste."},
-      faible:{titre:"Une voix intérieure souvent dure",texte:"Tu te traites souvent bien plus sévèrement que tu ne traiterais quelqu'un que tu aimes. La honte, l'auto-critique, le sentiment de ne pas être assez — ces expériences sont fréquentes. Ce n'est pas une vérité sur toi : c'est une façon apprise de te regarder, et elle peut changer."},
-    },
-    VAL:{
-      solide:{titre:"Une boussole bien orientée",texte:"Tu vis globalement en accord avec ce qui compte pour toi. Tu sais te réajuster quand tu t'éloignes de tes valeurs, et tu identifies ce qui fait monter ou descendre ton estime dans le quotidien. Cette conscience est un outil puissant de régulation."},
-      moyen:{titre:"Une boussole qui cherche le Nord",texte:"Tu as des valeurs, mais le quotidien t'éloigne parfois d'elles sans que tu t'en rendes toujours compte. Les «c'est pas grave», les zones de confort qui durent, les petites victoires invisibles — autant de signaux à mieux observer pour réajuster ta trajectoire."},
-      faible:{titre:"Un écart à explorer",texte:"Il semble y avoir un décalage important entre ce que tu valorises profondément et la façon dont tu vis au quotidien. Quand ce décalage dure, l'estime de soi en pâtit. Identifier ce qui crée cet écart est souvent le premier pas vers un réalignement."},
-    },
+    QJS:{solide:{titre:"Une identité ancrée",texte:"Tu sais qui tu es — suffisamment pour ne pas te perdre quand les autres ou les circonstances te bousculent. Cette clarté identitaire est une ressource rare."},moyen:{titre:"Une identité en chemin",texte:"Tu as des repères sur toi-même, mais ils peuvent vaciller selon les contextes. Il arrive que les attentes des autres prennent le dessus sur les tiennes."},faible:{titre:"Une identité à clarifier",texte:"La question «qui je suis vraiment» semble encore ouverte, voire inconfortable. Ce n'est pas un manque — c'est souvent le point de départ d'un vrai travail de fond sur soi."}},
+    RDS:{solide:{titre:"Un regard ancré en toi",texte:"Tu n'es pas imperméable au regard des autres, mais tu n'en dépends pas. Tu peux recevoir une critique sans te sentir anéanti(e). C'est une liberté intérieure précieuse."},moyen:{titre:"Un regard encore dépendant",texte:"L'avis des autres compte — parfois trop. Une critique peut ébranler ton image de toi. Ancrer ton regard en toi plutôt qu'en dehors fait partie du chemin."},faible:{titre:"Un regard largement extérieur",texte:"Ton image de toi est fortement tributaire de ce que les autres pensent. La comparaison, la peur du jugement, la censure de toi-même méritent attention."}},
+    ADS:{solide:{titre:"Une relation à soi bienveillante",texte:"Tu sais te traiter avec douceur — pas systématiquement, mais souvent. Tu peux reconnaître tes réussites et accepter tes imperfections sans te condamner."},moyen:{titre:"Un amour de soi à cultiver",texte:"Tu as des capacités de bienveillance envers toi-même, mais elles ne sont pas toujours au rendez-vous. La voix critique est souvent là, et elle sait être sévère."},faible:{titre:"Une voix intérieure souvent dure",texte:"Tu te traites souvent bien plus sévèrement que tu ne traiterais quelqu'un que tu aimes. Ce n'est pas une vérité sur toi : c'est une façon apprise de te regarder, et elle peut changer."}},
+    VAL:{solide:{titre:"Une boussole bien orientée",texte:"Tu vis globalement en accord avec ce qui compte pour toi. Tu sais te réajuster quand tu t'éloignes de tes valeurs. Cette conscience est un outil puissant."},moyen:{titre:"Une boussole qui cherche le Nord",texte:"Tu as des valeurs, mais le quotidien t'éloigne parfois d'elles sans que tu t'en rendes compte. Les petites victoires invisibles méritent d'être observées."},faible:{titre:"Un écart à explorer",texte:"Il semble y avoir un décalage entre ce que tu valorises profondément et la façon dont tu vis. Quand ce décalage dure, l'estime de soi en pâtit."}},
   };
+  function getDimProfile(dimId,pct){const p=DIM_PROFILES[dimId];if(pct>=70)return p.solide;if(pct>=48)return p.moyen;return p.faible;}
+  function getLevel(pct){if(pct>=70)return{label:"Solide",color:"#4CAF50",bg:"#f0fdf4",border:"#c8e6c9"};if(pct>=48)return{label:"En construction",color:"#F57C00",bg:"#fff8f0",border:"#ffcc80"};return{label:"Fragilisée",color:"#E53935",bg:"#ffebee",border:"#ffcdd2"};}
 
-  function getDimProfile(dimId,pct){
-    const p=DIM_PROFILES[dimId];
-    if(pct>=70)return p.solide;
-    if(pct>=48)return p.moyen;
-    return p.faible;
+  // ─── QUESTIONS ───────────────────────────────────────────────────────────────
+  // dim: dimension scoring (null for type-only)
+  // dimDir: +1 or -1 for dimension contribution
+  // type: type scoring
+  const ALL_QUESTIONS = [
+    // ── THÈME 1 : Mon identité & ma place ──
+    {id:"q01",type:"CONFIANT",  dim:"QJS",dimDir:+1, text:"Je sais clairement ce qui est important pour moi — mes valeurs, ce qui me tient vraiment à cœur."},
+    {id:"q02",type:"EFFACE",   dim:"QJS",dimDir:-1, text:"J'ai du mal à occuper de la place — je parle peu, je cède facilement, je préfère rester en arrière-plan."},
+    {id:"q03",type:"EFFACE",   dim:"QJS",dimDir:-1, text:"J'ai souvent l'impression que le monde peut très bien tourner sans moi — ma présence ne change pas grand-chose."},
+    {id:"q04",type:"CONFIANT",  dim:"QJS",dimDir:+1, text:"Dans les situations difficiles, je reste en contact avec qui je suis — je ne me perds pas."},
+    {id:"q05",type:"DOUTANT",  dim:"QJS",dimDir:-1, text:"J'ai du mal à savoir ce que je veux vraiment, indépendamment de ce que les autres attendent de moi."},
+    {id:"q06",type:"DOUTANT",  dim:"QJS",dimDir:-1, text:"Quand quelqu'un me critique fortement, je remets en question des aspects fondamentaux de qui je suis."},
+
+    // ── THÈME 2 : Le regard des autres ──
+    {id:"q07",type:"FLAMBOYANT",dim:"RDS",dimDir:-1, text:"J'aime être remarqué(e), briller, occuper l'espace — me mettre en avant me vient naturellement."},
+    {id:"q08",type:"FLAMBOYANT",dim:"RDS",dimDir:-1, text:"Les compliments me nourrissent vraiment — et les critiques me touchent bien plus profondément que je ne veux l'admettre."},
+    {id:"q09",type:"CONFIANT",  dim:"RDS",dimDir:+1, text:"L'opinion des autres m'intéresse, mais elle ne définit pas ma valeur à mes propres yeux."},
+    {id:"q10",type:"FLAMBOYANT",dim:"RDS",dimDir:-1, text:"La peur du regard des autres limite ce que j'ose dire, faire ou montrer dans ma vie."},
+    {id:"q11",type:"COMBAT",   dim:"RDS",dimDir:-1, text:"Je ressens souvent un décalage inconfortable entre ce que je montre aux autres et qui je suis vraiment."},
+    {id:"q12",type:"FLAMBOYANT",dim:"RDS",dimDir:-1, text:"J'ai besoin de reconnaissance pour me sentir bien — être ignoré(e) ou passer inaperçu(e) est difficile à vivre."},
+
+    // ── THÈME 3 : L'amour de soi ──
+    {id:"q13",type:"EFFACE",   dim:"ADS",dimDir:-1, text:"Je peux accepter d'être mal traité(e) ou ignoré(e) sans vraiment réagir — comme si c'était normal."},
+    {id:"q14",type:"DOUTANT",  dim:"ADS",dimDir:-1, text:"Mon discours intérieur est souvent négatif — je m'auto-invalide régulièrement avant même d'avoir essayé."},
+    {id:"q15",type:"CONFIANT",  dim:"ADS",dimDir:+1, text:"Je peux m'offrir de la compassion dans les moments difficiles, comme je le ferais pour un ami proche."},
+    {id:"q16",type:"FLAMBOYANT",dim:"ADS",dimDir:-1, text:"Quand je fais une erreur, j'ai du mal à le vivre comme une remarque sur mon comportement — ça ressemble plutôt à une attaque sur ce que je suis."},
+    {id:"q17",type:"COMBAT",   dim:"ADS",dimDir:-1, text:"Ma voix intérieure est souvent plus dure et exigeante envers moi qu'elle ne le serait envers n'importe qui d'autre."},
+    {id:"q18",type:"CONFIANT",  dim:"ADS",dimDir:+1, text:"Même dans mes imperfections, je peux me regarder avec une certaine douceur et acceptation."},
+
+    // ── THÈME 4 : La boussole des valeurs ──
+    {id:"q19",type:"CONFIANT",  dim:"VAL",dimDir:+1, text:"Je me sens globalement en accord avec ma vie — mes choix, mes relations, mes actions."},
+    {id:"q20",type:"EFFACE",   dim:"VAL",dimDir:-1, text:"Je vais naturellement vers le besoin de l'autre avant même de consulter le mien."},
+    {id:"q21",type:"SOUHAIT",  dim:"VAL",dimDir:-1, text:"Je sors rarement de ma zone de confort — j'évite les situations nouvelles ou risquées même quand elles pourraient me faire grandir."},
+    {id:"q22",type:"CONFIANT",  dim:"VAL",dimDir:+1, text:"Je peux nommer des choses concrètes que je fais dans ma vie qui font monter mon estime de moi."},
+    {id:"q23",type:"DOUTANT",  dim:"VAL",dimDir:-1, text:"Je minimise souvent mes efforts ou mes réussites avec des «c'est pas grand-chose» ou «n'importe qui aurait fait ça»."},
+    {id:"q24",type:"SOUHAIT",  dim:"VAL",dimDir:-1, text:"J'accumule les formations, les lectures, les préparations — mais je les utilise rarement ou ne les mène pas jusqu'au bout."},
+
+    // ── THÈME 5 : Mon énergie & mes blocages ──
+    {id:"q25",type:"DOUTANT",  dim:null,dimDir:0,   text:"Je remets constamment en question mes choix, même après les avoir faits — c'est épuisant mais je n'arrive pas à m'en empêcher."},
+    {id:"q26",type:"DOUTANT",  dim:null,dimDir:0,   text:"J'ai beaucoup d'idées et d'envies, mais elles restent dans ma tête sans jamais vraiment se transformer en actions concrètes."},
+    {id:"q27",type:"DOUTANT",  dim:null,dimDir:0,   text:"Je ressens une forme d'angoisse diffuse qui s'exprime surtout par des hésitations et des remises en question permanentes."},
+    {id:"q28",type:"SOUHAIT",  dim:null,dimDir:0,   text:"J'ai une très haute idée de ce que je pourrais faire ou devenir — mais je reste souvent dans le projet ou le souhait sans vraiment passer à l'acte."},
+    {id:"q29",type:"SOUHAIT",  dim:null,dimDir:0,   text:"Mes aspirations sont grandes — parfois peut-être démesurées — et cette grandeur m'empêche parfois de commencer par du concret."},
+    {id:"q30",type:"DOUTANT",  dim:null,dimDir:0,   text:"J'ai une voix qui dit «à quoi bon» ou «ça ne marchera pas de toute façon» — elle m'arrête souvent avant même d'avoir commencé."},
+
+    // ── THÈME 6 : Ma relation aux autres ──
+    {id:"q31",type:"EFFACE",   dim:null,dimDir:0,   text:"Je m'arrange souvent pour que ça se passe bien pour les autres, même si ça ne me convient pas vraiment."},
+    {id:"q32",type:"EFFACE",   dim:null,dimDir:0,   text:"Je pose rarement mes limites, même quand quelque chose me dérange vraiment."},
+    {id:"q33",type:"COMBAT",   dim:null,dimDir:0,   text:"Quand quelqu'un me contredit ou remet en question mon point de vue, je ressens rapidement le besoin de défendre ma position, parfois avec force."},
+    {id:"q34",type:"COMBAT",   dim:null,dimDir:0,   text:"Mes relations sont souvent intenses — on s'entend bien ou on se heurte, rarement dans la neutralité."},
+    {id:"q35",type:"FLAMBOYANT",dim:null,dimDir:0,  text:"Je suis très attentif(ve) à mon apparence, à l'image que je renvoie, à la façon dont les autres me perçoivent."},
+    {id:"q36",type:"FLAMBOYANT",dim:null,dimDir:0,  text:"Il m'arrive de pointer les failles ou les erreurs des autres — parfois avec une pointe de mépris, même si je ne le dis pas toujours ouvertement."},
+
+    // ── THÈME 7 : Ma façon d'agir & de décider ──
+    {id:"q37",type:"CONFIANT",  dim:null,dimDir:0,   text:"Je participe à la vie — projets, relations, nouveautés — sans avoir besoin qu'on me pousse ni sans chercher à fuir."},
+    {id:"q38",type:"CONFIANT",  dim:null,dimDir:0,   text:"Je peux traverser une critique ou un échec sans remettre en cause qui je suis profondément."},
+    {id:"q39",type:"SOUHAIT",  dim:null,dimDir:0,   text:"Je me retrouve souvent dans la dimension du fantasme — imaginer ce que je ferais, ce que je serais — plutôt que dans l'action réelle."},
+    {id:"q40",type:"SOUHAIT",  dim:null,dimDir:0,   text:"J'ai l'impression d'être «presque prêt(e)» depuis longtemps, mais le moment de vraiment se lancer ne vient jamais."},
+    {id:"q41",type:"SOUHAIT",  dim:null,dimDir:0,   text:"J'évite de me confronter au principe de réalité : essayer vraiment quelque chose, c'est risquer de découvrir mes limites."},
+    {id:"q42",type:"EFFACE",   dim:null,dimDir:0,   text:"J'anticipe les besoins des autres avant même qu'ils les expriment — c'est presque un réflexe automatique."},
+
+    // ── THÈME 8 : Comment je me perçois ──
+    {id:"q43",type:"FLAMBOYANT",dim:null,dimDir:0,  text:"Quand quelqu'un me critique, j'ai du mal à le vivre comme une remarque sur mon comportement — ça ressemble à une attaque sur ce que je suis."},
+    {id:"q44",type:"COMBAT",   dim:null,dimDir:0,   text:"J'ai du mal à laisser une remarque ou une critique sans répondre, sans me défendre ou sans contre-attaquer."},
+    {id:"q45",type:"COMBAT",   dim:null,dimDir:0,   text:"Mon ego est important — je le sais. Il m'est difficile de reconnaître que j'ai tort ou de laisser l'autre «gagner»."},
+    {id:"q46",type:"DOUTANT",  dim:null,dimDir:0,   text:"Je doute non seulement de moi-même, mais aussi souvent des autres et de la manière dont les choses peuvent s'arranger."},
+    {id:"q47",type:"CONFIANT",  dim:null,dimDir:0,   text:"J'aime apporter quelque chose de concret au monde — créer, contribuer, laisser une trace qui a du sens."},
+    {id:"q48",type:"CONFIANT",  dim:null,dimDir:0,   text:"Même quand je déçois quelqu'un, je peux rester en contact avec ma propre valeur."},
+
+    // ── THÈME 9 : Ce qui se passe quand ça résiste ──
+    {id:"q49",type:"COMBAT",   dim:null,dimDir:0,   text:"Je me retrouve souvent en opposition — avec les idées des autres, les systèmes, les règles — même quand ce n'est pas vraiment nécessaire."},
+    {id:"q50",type:"COMBAT",   dim:null,dimDir:0,   text:"Je cherche le contact, mais ce contact prend souvent la forme d'une friction, d'un défi ou d'une confrontation."},
+    {id:"q51",type:"EFFACE",   dim:null,dimDir:0,   text:"Je peux accepter d'être en second plan, d'être oublié(e) ou remplacé(e) — c'est presque confortable."},
+    {id:"q52",type:"FLAMBOYANT",dim:null,dimDir:0,  text:"Être ignoré(e) ou passer inaperçu(e) est difficile à vivre — j'ai besoin que les autres remarquent ma présence."},
+  ];
+
+  const THEMES = [
+    {title:"Mon identité & ma place",           icon:"🧭", step:1,  qids:["q01","q02","q03","q04","q05","q06"]},
+    {title:"Le regard des autres",              icon:"👁️", step:2,  qids:["q07","q08","q09","q10","q11","q12"]},
+    {title:"L'amour de soi",                   icon:"🌸", step:3,  qids:["q13","q14","q15","q16","q17","q18"]},
+    {title:"La boussole des valeurs",           icon:"🧿", step:4,  qids:["q19","q20","q21","q22","q23","q24"]},
+    {title:"Mon énergie & mes blocages",        icon:"⚡", step:5,  qids:["q25","q26","q27","q28","q29","q30"]},
+    {title:"Ma relation aux autres",            icon:"🤝", step:6,  qids:["q31","q32","q33","q34","q35","q36"]},
+    {title:"Ma façon d'agir & de décider",      icon:"🎯", step:7,  qids:["q37","q38","q39","q40","q41","q42"]},
+    {title:"Comment je me perçois",             icon:"🪞", step:8,  qids:["q43","q44","q45","q46","q47","q48"]},
+    {title:"Ce qui se passe quand ça résiste",  icon:"🌊", step:9,  qids:["q49","q50","q51","q52"]},
+  ];
+
+  const LIKERT=[{val:1,label:"Pas moi"},{val:2,label:"Rarement"},{val:3,label:"Parfois"},{val:4,label:"Souvent"},{val:5,label:"Tout à fait moi"}];
+
+  // ─── SCORING ─────────────────────────────────────────────────────────────────
+  function computeAll(answers){
+    // Types
+    const typeRaw={CONFIANT:0,EFFACE:0,DOUTANT:0,FLAMBOYANT:0,SOUHAIT:0,COMBAT:0};
+    ALL_QUESTIONS.forEach(q=>{ typeRaw[q.type]+=(answers[q.id]||0); });
+    // Count questions per type
+    const typeCount={CONFIANT:0,EFFACE:0,DOUTANT:0,FLAMBOYANT:0,SOUHAIT:0,COMBAT:0};
+    ALL_QUESTIONS.forEach(q=>{ typeCount[q.type]++; });
+    const typePct={};
+    Object.keys(typeRaw).forEach(k=>{ typePct[k]=Math.round((typeRaw[k]/(typeCount[k]*5))*100); });
+    // Tri par POURCENTAGE (pas raw) pour éviter le biais lié au nombre de questions par type
+    const primaryType=Object.entries(typePct).sort((a,b)=>b[1]-a[1])[0][0];
+
+    // Dimensions
+    const dimRaw={QJS:0,RDS:0,ADS:0,VAL:0};
+    const dimCount={QJS:0,RDS:0,ADS:0,VAL:0};
+    ALL_QUESTIONS.forEach(q=>{
+      if(!q.dim) return;
+      const val=answers[q.id]||0;
+      dimRaw[q.dim] += q.dimDir===+1 ? val : (6-val);
+      dimCount[q.dim]++;
+    });
+    const dimPct={};
+    Object.keys(dimRaw).forEach(k=>{ dimPct[k]=dimCount[k]>0?Math.round((dimRaw[k]/(dimCount[k]*5))*100):50; });
+    const dimGlobal=Math.round((dimPct.QJS+dimPct.RDS+dimPct.ADS+dimPct.VAL)/4);
+
+    // Escalation vers trouble ou métabolisé avancé selon l'intensité du score dominant
+    const TROUBLE_MAP={EFFACE:"UTILISE",DOUTANT:"SCEPTIQUE",FLAMBOYANT:"MEPRISANT",SOUHAIT:"GRANDIOSE",COMBAT:"COMBAT_TROUBLE"};
+    let resultType=primaryType;
+    const primaryPct=typePct[primaryType];
+    if(primaryType==="CONFIANT"&&primaryPct>=75){resultType="CONFIANT_CREATEUR";}
+    else if(TROUBLE_MAP[primaryType]&&primaryPct>=73){resultType=TROUBLE_MAP[primaryType];}
+
+    return{typeRaw,typePct,primaryType,resultType,dimPct,dimGlobal};
   }
 
-  function computeInsights(scores){
-    const items=[];
-    const dims=["QJS","RDS","ADS","VAL"];
-    const weakest=dims.reduce((a,b)=>scores[a]<scores[b]?a:b);
-    const strongest=dims.reduce((a,b)=>scores[a]>scores[b]?a:b);
-
-    const selfGap=scores.ADS-scores.RDS;
-    if(selfGap<=-20){
-      items.push({icon:"🔍",title:"Tu te traites plus durement que tu ne laisses les autres te traiter",body:"Ton score d'amour de soi est significativement plus bas que ton rapport au regard extérieur. Tu gères relativement bien les critiques des autres, mais ta voix intérieure est bien plus sévère. Le vrai travail est souvent là : à l'intérieur.",color:"#B85C6E",bg:"#FDF0F2",border:"#E8B8C2"});
-    } else if(selfGap>=20){
-      items.push({icon:"🔍",title:"Tu t'aimes mieux seul(e) qu'en présence des autres",body:"Ton amour de soi est plus solide que ton rapport au regard extérieur. Tu peux te traiter avec bienveillance en privé, mais la présence des autres fragilise cette bienveillance. La confiance en soi «au contact» est ta prochaine frontière.",color:"#7A5C8B",bg:"#F3EDF7",border:"#C9B2D4"});
-    }
-
-    if(scores.QJS-scores.ADS>=20){
-      items.push({icon:"🔍",title:"Tu sais qui tu es, mais tu as du mal à t'aimer tel(le) que tu es",body:"Ton identité est relativement claire, mais l'amour de soi reste difficile. Savoir qui on est ne suffit pas toujours pour se traiter avec douceur — c'est souvent lié à des croyances anciennes sur ce qu'on mérite ou ce qu'on «devrait» être.",color:"#5C7A6E",bg:"#EDF4F1",border:"#B2D4CA"});
-    }
-
-    if(scores.VAL<45&&scores.QJS>=55){
-      items.push({icon:"🧿",title:"Tu sais qui tu es, mais tu ne vis pas encore en accord avec ça",body:"Tu as une identité assez claire, mais un réel écart avec ta boussole de valeurs. Savoir ce qui compte pour toi ne se traduit pas encore dans tes actes quotidiens. C'est souvent là que l'estime perd le plus de terrain — dans l'espace entre qui on est et comment on vit.",color:"#8B6F5E",bg:"#F5F0ED",border:"#D4B8A8"});
-    }
-
-    if(scores.VAL<50){
-      items.push({icon:"⚡",title:"La zone de confort : un frein possible à l'estime",body:"Rester dans ce qu'on connaît préserve de l'anxiété — mais peut faire baisser l'estime de soi sur le long terme. L'estime se nourrit des petits défis relevés, des risques pris, des efforts reconnus. Identifier ce que tu pourrais oser un peu plus peut être un levier puissant.",color:"#F57C00",bg:"#fff8f0",border:"#ffcc80"});
-    }
-
-    items.push({icon:DIMS[strongest].icon,title:`Ton point d'appui : ${DIMS[strongest].label}`,body:`C'est ta dimension la plus solide (${scores[strongest]}%). En Gestalt, on part toujours de ce qui fonctionne pour aller vers ce qui résiste. Cette ressource peut être le socle de ton travail sur les zones plus fragilisées.`,color:DIMS[strongest].color,bg:DIMS[strongest].light,border:DIMS[strongest].border});
-
-    items.push({icon:DIMS[weakest].icon,title:`Terrain de travail prioritaire : ${DIMS[weakest].label}`,body:`C'est la dimension qui mérite le plus d'attention (${scores[weakest]}%). Ce n'est pas un déficit définitif — c'est simplement là que quelque chose attend d'être entendu, compris et retravaillé.`,color:DIMS[weakest].color,bg:DIMS[weakest].light,border:DIMS[weakest].border});
-
-    return items;
-  }
-
+  // ─── COMPOSANTS ──────────────────────────────────────────────────────────────
   function ProgressBar({step,total}){
     const pct=((step-1)/(total-1))*100;
     const t=THEMES[step-1];
@@ -200,10 +273,10 @@
   }
 
   function LikertQuestion({question,value,onChange,index}){
-    const d=DIMS[question.dim];
+    const tColor = question.dim ? DIMS[question.dim].color : TYPES[question.type].color;
     return(
       <div className="fade-up" style={{marginBottom:24,animationDelay:`${index*0.07}s`}}>
-        <div style={{fontSize:13,color:DARK,lineHeight:1.75,marginBottom:12,fontStyle:"italic",paddingLeft:12,borderLeft:`3px solid ${d.color}`}}>
+        <div style={{fontSize:13,color:DARK,lineHeight:1.75,marginBottom:12,fontStyle:"italic",paddingLeft:12,borderLeft:`3px solid ${tColor}`}}>
           « {question.text} »
         </div>
         <div style={{display:"flex",gap:5}}>
@@ -212,7 +285,7 @@
             return(
               <div key={l.val} onClick={()=>onChange(l.val)} style={{
                 flex:"1 1 0",padding:"9px 4px",borderRadius:9,textAlign:"center",cursor:"pointer",
-                border:`2px solid ${active?d.color:"#e0d4c8"}`,background:active?d.color:"#fff",
+                border:`2px solid ${active?tColor:"#e0d4c8"}`,background:active?tColor:"#fff",
                 color:active?"#fff":MID,transition:"all 0.15s ease",fontSize:11,lineHeight:1.3,
               }}>
                 <div style={{fontSize:15,marginBottom:2}}>{l.val}</div>
@@ -225,15 +298,15 @@
     );
   }
 
-  function TriangleChart({scores}){
-    const W=300,H=260,cx=150,cy=140,R=95;
+  function TriangleChart({dimPct}){
+    const W=300,H=265,cx=150,cy=140,R=95;
     const toRad=d=>d*Math.PI/180;
     const verts=[
       {x:cx,y:cy-R,dim:"QJS"},
       {x:cx-R*Math.cos(toRad(30)),y:cy+R*Math.sin(toRad(30)),dim:"RDS"},
       {x:cx+R*Math.cos(toRad(30)),y:cy+R*Math.sin(toRad(30)),dim:"ADS"},
     ];
-    const pts=verts.map(v=>({x:cx+(v.x-cx)*(scores[v.dim]/100),y:cy+(v.y-cy)*(scores[v.dim]/100),dim:v.dim}));
+    const pts=verts.map(v=>({x:cx+(v.x-cx)*(dimPct[v.dim]/100),y:cy+(v.y-cy)*(dimPct[v.dim]/100),dim:v.dim}));
     const poly=pts.map(p=>`${p.x},${p.y}`).join(" ");
     const bgPoly=verts.map(v=>`${v.x},${v.y}`).join(" ");
     const midPoly=verts.map(v=>`${cx+(v.x-cx)*0.5},${cy+(v.y-cy)*0.5}`).join(" ");
@@ -245,59 +318,15 @@
         <polygon points={poly} fill={ACCENT+"20"} stroke={ACCENT} strokeWidth="2"/>
         {pts.map((p,i)=><circle key={i} cx={p.x} cy={p.y} r={5} fill={DIMS[p.dim].color} stroke="#fff" strokeWidth="2"/>)}
         {verts.map((v,i)=>{
-          const ox=(v.x-cx)*0.32, oy=(v.y-cy)*0.32;
+          const ox=(v.x-cx)*0.32,oy=(v.y-cy)*0.32;
           return(
             <g key={i}>
               <text x={v.x+ox} y={v.y+oy-(oy<0?10:-2)} textAnchor="middle" fontSize="10" fill={DIMS[v.dim].color} fontWeight="bold" fontFamily="Georgia,serif">{DIMS[v.dim].icon} {DIMS[v.dim].label}</text>
-              <text x={v.x+ox} y={v.y+oy+(oy<0?2:12)} textAnchor="middle" fontSize="12" fill={DIMS[v.dim].color} fontFamily="Georgia,serif" fontWeight="bold">{scores[v.dim]}%</text>
+              <text x={v.x+ox} y={v.y+oy+(oy<0?2:12)} textAnchor="middle" fontSize="12" fill={DIMS[v.dim].color} fontFamily="Georgia,serif" fontWeight="bold">{dimPct[v.dim]}%</text>
             </g>
           );
         })}
       </svg>
-    );
-  }
-
-  function ScoreBar({dimId,pct}){
-    const d=DIMS[dimId],lv=getLevel(pct);
-    return(
-      <div style={{marginBottom:12}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:5}}>
-          <div style={{display:"flex",alignItems:"center",gap:7}}>
-            <span style={{fontSize:14}}>{d.icon}</span>
-            <span style={{fontSize:12,color:DARK}}>{d.label}</span>
-          </div>
-          <div style={{display:"flex",alignItems:"center",gap:8}}>
-            <span style={{fontSize:9,padding:"2px 8px",borderRadius:10,background:lv.bg,color:lv.color,fontWeight:"bold",border:`1px solid ${lv.border}`}}>{lv.label}</span>
-            <span style={{fontSize:13,fontWeight:"bold",color:d.color}}>{pct}%</span>
-          </div>
-        </div>
-        <div style={{background:"#e0d8d0",borderRadius:8,height:8,overflow:"hidden"}}>
-          <div style={{width:`${pct}%`,height:"100%",background:d.color,borderRadius:8,transition:"width 1.3s cubic-bezier(0.23,1,0.32,1)"}}/>
-        </div>
-      </div>
-    );
-  }
-
-  function DimCard({dimId,pct}){
-    const d=DIMS[dimId],lv=getLevel(pct),profile=getDimProfile(dimId,pct);
-    return(
-      <div style={{background:"#fff",borderRadius:12,padding:18,marginBottom:12,border:`1px solid ${d.border}`,borderLeft:`4px solid ${d.color}`}}>
-        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
-          <div style={{display:"flex",alignItems:"center",gap:8}}>
-            <span style={{fontSize:18}}>{d.icon}</span>
-            <div>
-              <div style={{fontSize:13,fontWeight:"bold",color:d.color}}>{d.label}</div>
-              <div style={{fontSize:9,padding:"2px 8px",borderRadius:10,background:lv.bg,color:lv.color,fontWeight:"bold",border:`1px solid ${lv.border}`,display:"inline-block",marginTop:2}}>{lv.label}</div>
-            </div>
-          </div>
-          <div style={{fontSize:22,fontWeight:"bold",color:d.color}}>{pct}%</div>
-        </div>
-        <div style={{background:"#e0d8d0",borderRadius:6,height:7,overflow:"hidden",marginBottom:12}}>
-          <div style={{width:`${pct}%`,height:"100%",background:d.color,borderRadius:6,transition:"width 1.3s cubic-bezier(0.23,1,0.32,1)"}}/>
-        </div>
-        <div style={{fontSize:11,fontWeight:"bold",color:d.color,marginBottom:6}}>{profile.titre}</div>
-        <p style={{fontSize:11,color:MID,lineHeight:1.75,fontStyle:"italic"}}>{profile.texte}</p>
-      </div>
     );
   }
 
@@ -306,26 +335,25 @@
     const toRad=d=>d*Math.PI/180;
     const r=55,cx=90,cy=75;
     const angle=(pct/100)*180;
-    const ax=cx+r*Math.cos(toRad(180-angle));
-    const ay=cy-r*Math.sin(toRad(180-angle));
+    const ax=cx+r*Math.cos(toRad(180-angle)),ay=cy-r*Math.sin(toRad(180-angle));
     const arc=(a1,a2,rr)=>{
       const x1=cx+rr*Math.cos(toRad(180-a1)),y1=cy-rr*Math.sin(toRad(180-a1));
       const x2=cx+rr*Math.cos(toRad(180-a2)),y2=cy-rr*Math.sin(toRad(180-a2));
       return`M ${x1} ${y1} A ${rr} ${rr} 0 0 1 ${x2} ${y2}`;
     };
     return(
-      <div style={{textAlign:"center",marginBottom:8}}>
-        <svg viewBox="0 0 180 90" style={{width:"100%",maxWidth:220,display:"block",margin:"0 auto"}}>
+      <div style={{textAlign:"center"}}>
+        <svg viewBox="0 0 180 92" style={{width:"100%",maxWidth:210,display:"block",margin:"0 auto"}}>
           <path d={arc(0,180,r)} fill="none" stroke="#e0d8d0" strokeWidth="13" strokeLinecap="round"/>
           <path d={arc(0,angle,r)} fill="none" stroke={lv.color} strokeWidth="13" strokeLinecap="round" style={{transition:"all 1.5s cubic-bezier(0.23,1,0.32,1)"}}/>
           <line x1={cx} y1={cy} x2={ax} y2={ay} stroke={DARK} strokeWidth="2.5" strokeLinecap="round"/>
           <circle cx={cx} cy={cy} r={4} fill={DARK}/>
-          <text x={cx} y={cy+16} textAnchor="middle" fontSize="18" fontWeight="bold" fill={lv.color} fontFamily="Georgia,serif">{pct}%</text>
-          <text x={18} y={85} fontSize="8" fill={LIGHT} fontFamily="Georgia,serif">Fragilisée</text>
-          <text x={130} y={85} fontSize="8" fill={LIGHT} fontFamily="Georgia,serif">Solide</text>
+          <text x={cx} y={cy+16} textAnchor="middle" fontSize="17" fontWeight="bold" fill={lv.color} fontFamily="Georgia,serif">{pct}%</text>
+          <text x={16} y={88} fontSize="8" fill={LIGHT} fontFamily="Georgia,serif">Fragilisée</text>
+          <text x={128} y={88} fontSize="8" fill={LIGHT} fontFamily="Georgia,serif">Solide</text>
         </svg>
-        <div style={{fontSize:13,fontWeight:"bold",color:lv.color,marginTop:2}}>{lv.label}</div>
-        <div style={{fontSize:11,color:MID,fontStyle:"italic",marginTop:2}}>Score global d'estime de soi</div>
+        <div style={{fontSize:12,fontWeight:"bold",color:lv.color,marginTop:2}}>{lv.label}</div>
+        <div style={{fontSize:10,color:MID,fontStyle:"italic",marginTop:2}}>Score global d'estime de soi</div>
       </div>
     );
   }
@@ -333,7 +361,20 @@
   function Results({scores,prenom,email}){
     const [sendStatus,setSendStatus]=useState("idle");
     const [emailError,setEmailError]=useState(null);
-    const insights=computeInsights(scores);
+    const result=TYPES[scores.resultType];  // type résolu (peut être trouble ou métabolisé avancé)
+    const primary=TYPES[scores.primaryType]; // type de base pour les barres
+    const niveauDisplay={
+      "métabolisé":{label:"Métabolisé",color:"#4A7C6E",bg:"#EBF5F2",border:"#A8D4CA",desc:"L'estime de soi est intégrée — ni compensation ni effacement. La confiance est présente, stable et créatrice."},
+      "trait":{label:"Trait",color:"#7B6B9E",bg:"#EEEAF6",border:"#C0B4DC",desc:"Pattern identifiable et récurrent — une façon d'être ancrée dans l'estime, mais qui peut évoluer avec un travail adapté."},
+      "trouble":{label:"Trouble",color:"#C05030",bg:"#FBEEEA",border:"#E8B0A0",desc:"Expression intense et souffrante du pattern — impact significatif sur la vie quotidienne. Un accompagnement thérapeutique est recommandé."},
+    }[result.niveau];
+    const fam={
+      "Métabolisé":{color:"#4A7C6E",bg:"#EBF5F2",desc:"Style d'estime équilibré — ni dans l'effacement ni dans la démonstration. La confiance est intégrée, pas prouvée."},
+      "Hypo":{color:"#5A6E9E",bg:"#E8ECF6",desc:"Style d'estime insuffisant — tendance à se faire petit(e), à se retirer, à s'invalider. Le monde peut tourner sans eux."},
+      "Hyper":{color:"#B85C2E",bg:"#FDF0E8",desc:"Style d'estime compensé — tendance à cacher des failles profondes derrière la mise en avant, le fantasme ou le combat."},
+    }[result.famille];
+    const sortedTypes=Object.entries(scores.typePct).sort((a,b)=>b[1]-a[1]);
+    const secondType=sortedTypes[1];
 
     const sendEmail=()=>{
       if(!email){setSendStatus("no-email");return;}
@@ -341,47 +382,77 @@
       if(!window.emailjs){setEmailError("EmailJS non chargé.");setSendStatus("error");return;}
       try{
         window.emailjs.init({publicKey:EMAILJS_PUBLIC_KEY});
-        const lv=getLevel(scores.global);
+        const lv=getLevel(scores.dimGlobal);
+        const GRPS=[
+          {key:"Métabolisé",color:"#4A7C6E",lignes:[{b:"CONFIANT",tr:"CONFIANT_CREATEUR",seuil:75}]},
+          {key:"Hypo",color:"#5A6E9E",lignes:[{b:"EFFACE",tr:"UTILISE",seuil:73},{b:"DOUTANT",tr:"SCEPTIQUE",seuil:73}]},
+          {key:"Hyper",color:"#B85C2E",lignes:[{b:"FLAMBOYANT",tr:"MEPRISANT",seuil:73},{b:"SOUHAIT",tr:"GRANDIOSE",seuil:73},{b:"COMBAT",tr:"COMBAT_TROUBLE",seuil:73}]},
+        ];
+        const typeBarRows=GRPS.map(grp=>{
+          const rows=grp.lignes.map(({b,tr,seuil})=>{
+            const t=TYPES[b],trT=TYPES[tr],p=scores.typePct[b];
+            const isRes=scores.resultType===b||scores.resultType===tr;
+            // Afficher la ligne trouble UNIQUEMENT si c'est le résultat réel
+            const showTrouble=isRes&&scores.resultType===tr;
+            return`<div style="margin-bottom:10px;padding:8px 10px;border-radius:8px;background:${isRes?t.light:"#fafaf8"};border:1px solid ${isRes?t.border:"#e8ddd4"};">
+<div style="display:flex;justify-content:space-between;margin-bottom:3px;"><span style="font-size:11px;color:#2a1f1a;">${t.icon} ${t.label} <span style="font-size:9px;background:${t.color}22;color:${t.color};padding:1px 5px;border-radius:6px;border:1px solid ${t.color}44;">Trait</span>${scores.resultType===b?` <span style="font-size:9px;background:${t.color};color:#fff;padding:1px 6px;border-radius:6px;">✓ Ton profil</span>`:''}</span><span style="font-weight:bold;color:${t.color};">${p}%</span></div>
+<div style="background:#e0d8d0;border-radius:4px;height:5px;overflow:hidden;margin-bottom:${showTrouble?6:0}px;"><div style="height:5px;width:${p}%;background:${t.color};border-radius:4px;"></div></div>
+${showTrouble?`<div style="padding-left:10px;border-left:2px dashed ${trT.color}60;margin-top:4px;"><span style="font-size:10px;color:${trT.color};">${trT.icon} ${trT.label} <span style="font-size:9px;background:${trT.color}22;color:${trT.color};padding:1px 5px;border-radius:6px;border:1px solid ${trT.color}44;">${tr==="CONFIANT_CREATEUR"?"Métabolisé avancé":"Trouble"}</span> <span style="font-size:9px;background:${trT.color};color:#fff;padding:1px 6px;border-radius:6px;">✓ Ton profil</span></span></div>`:""}
+</div>`;
+          }).join("");
+          return`<div style="margin-bottom:14px;"><div style="font-size:10px;font-weight:bold;color:${grp.color};text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;padding-bottom:4px;border-bottom:2px solid ${grp.color}30;">${grp.key}</div>${rows}</div>`;
+        }).join("");
         const dimRows=["QJS","RDS","ADS","VAL"].map(k=>{
-          const d=DIMS[k],p=scores[k],dlv=getLevel(p),prof=getDimProfile(k,p);
-          return`<div style="margin-bottom:14px;padding:14px;border-radius:10px;background:#fff;border:1px solid ${d.border};border-left:4px solid ${d.color};">
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-  <span style="font-size:13px;font-weight:bold;color:${d.color};">${d.icon} ${d.label}</span>
-  <span style="font-size:18px;font-weight:bold;color:${d.color};">${p}%</span>
+          const d=DIMS[k],p=scores.dimPct[k],dlv=getLevel(p),prof=getDimProfile(k,p);
+          return`<div style="margin-bottom:12px;padding:12px 14px;border-radius:10px;background:#fff;border-left:3px solid ${d.color};border:1px solid ${d.border};">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+  <span style="font-size:12px;font-weight:bold;color:${d.color};">${d.icon} ${d.label}</span>
+  <span style="font-size:16px;font-weight:bold;color:${d.color};">${p}%</span>
 </div>
-<div style="background:#e0d8d0;border-radius:4px;height:6px;overflow:hidden;margin-bottom:10px;">
-  <div style="height:6px;width:${p}%;background:${d.color};border-radius:4px;"></div>
-</div>
-<div style="font-size:10px;font-weight:bold;color:${dlv.color};margin-bottom:5px;">${dlv.label} — ${prof.titre}</div>
-<p style="font-size:11px;color:#6b5246;font-style:italic;line-height:1.7;margin:0;">${prof.texte}</p>
+<div style="background:#e0d8d0;border-radius:4px;height:5px;overflow:hidden;margin-bottom:8px;"><div style="height:5px;width:${p}%;background:${d.color};border-radius:4px;"></div></div>
+<div style="font-size:10px;font-weight:bold;color:${dlv.color};margin-bottom:3px;">${dlv.label} — ${prof.titre}</div>
+<p style="font-size:11px;color:#6b5246;font-style:italic;line-height:1.65;margin:0;">${prof.texte}</p>
 </div>`;
         }).join("");
-        const insightRows=insights.map(it=>`<div style="margin-bottom:10px;padding:12px 14px;border-radius:10px;background:${it.bg};border:1px solid ${it.border};">
-<div style="font-size:12px;font-weight:bold;color:${it.color};margin-bottom:5px;">${it.icon} ${it.title}</div>
-<p style="font-size:11px;color:#6b5246;font-style:italic;line-height:1.7;margin:0;">${it.body}</p>
-</div>`).join("");
+        const conseilRows=result.conseils.map(c=>`<div style="margin-bottom:8px;padding:10px 14px;border-radius:8px;background:#FFF8F2;border:1px dashed rgba(139,111,94,0.4);font-size:11px;color:#6b5246;font-style:italic;line-height:1.7;">${c}</div>`).join("");
+        const niveauLabel={"métabolisé":"Métabolisé","trait":"Trait","trouble":"Trouble"}[result.niveau]||result.niveau;
         const html=`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"/></head>
 <body style="font-family:Georgia,serif;background:#F0ECE6;padding:32px 24px;color:#2a1f1a;max-width:640px;margin:0 auto;">
-<h2 style="font-size:22px;margin:0 0 4px;">Estime de soi${prenom?" — "+prenom:""}</h2>
-<p style="font-size:13px;color:#6b5246;font-style:italic;margin:0 0 24px;">Résultats — 32 questions · 4 dimensions</p>
-<div style="background:#fff;border-radius:12px;padding:20px;margin-bottom:16px;border:2px solid ${lv.color}30;text-align:center;">
-  <div style="font-size:34px;font-weight:bold;color:${lv.color};margin-bottom:4px;">${scores.global}%</div>
-  <div style="font-size:12px;font-weight:bold;color:${lv.color};margin-bottom:2px;">${lv.label}</div>
-  <div style="font-size:11px;color:#6b5246;font-style:italic;">Score global d'estime de soi</div>
+<h2 style="font-size:22px;margin:0 0 4px;">Mon estime de soi${prenom?" — "+prenom:""}</h2>
+<p style="font-size:13px;color:#6b5246;font-style:italic;margin:0 0 24px;">Résultats complets — 52 questions · Type & Triangle</p>
+<div style="background:#fff;border-radius:12px;padding:20px;margin-bottom:16px;border:2px solid ${result.color}40;text-align:center;">
+  <div style="font-size:36px;margin-bottom:6px;">${result.icon}</div>
+  <div style="font-size:20px;font-weight:bold;color:${result.color};margin-bottom:4px;">${result.label}</div>
+  <div style="display:flex;justify-content:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+    <span style="display:inline-block;padding:3px 12px;border-radius:10px;background:${fam.bg};color:${fam.color};font-size:11px;font-weight:bold;">${result.famille}</span>
+    <span style="display:inline-block;padding:3px 12px;border-radius:10px;background:#f5f0ed;color:#8B6F5E;font-size:11px;font-weight:bold;border:1px solid #e0c9a8;">${niveauLabel}</span>
+  </div>
+  <p style="font-size:12px;color:#6b5246;font-style:italic;line-height:1.8;text-align:left;">${result.resume}</p>
 </div>
 <div style="background:#fff;border-radius:12px;padding:20px;margin-bottom:16px;border:1px solid #e8ddd4;">
-  <div style="font-size:14px;font-weight:bold;margin-bottom:14px;">📐 Le triangle de l'estime de soi</div>
+  <div style="font-size:14px;font-weight:bold;margin-bottom:12px;">📊 Répartition des 12 profils</div>
+  ${typeBarRows}
+</div>
+<div style="background:#fff;border-radius:12px;padding:20px;margin-bottom:16px;border:1px solid #e8ddd4;">
+  <div style="font-size:14px;font-weight:bold;margin-bottom:4px;">📐 Score global d'estime de soi</div>
+  <div style="font-size:32px;font-weight:bold;color:${lv.color};text-align:center;margin:12px 0 4px;">${scores.dimGlobal}%</div>
+  <div style="text-align:center;font-size:12px;font-weight:bold;color:${lv.color};margin-bottom:14px;">${lv.label}</div>
+  <div style="font-size:13px;font-weight:bold;margin-bottom:12px;">Le triangle de l'estime de soi</div>
   ${dimRows}
 </div>
 <div style="background:#fff;border-radius:12px;padding:20px;margin-bottom:16px;border:1px solid #e8ddd4;">
-  <div style="font-size:14px;font-weight:bold;margin-bottom:12px;">🔎 Ce que tes réponses révèlent</div>
-  ${insightRows}
+  <div style="font-size:14px;font-weight:bold;margin-bottom:12px;">📖 Portrait — ${result.label}</div>
+  <p style="font-size:12px;color:#6b5246;font-style:italic;line-height:1.85;white-space:pre-line;">${result.portrait}</p>
+</div>
+<div style="background:#fff;border-radius:12px;padding:20px;margin-bottom:16px;border:1px solid #e8ddd4;">
+  <div style="font-size:14px;font-weight:bold;margin-bottom:12px;">💬 Pistes de travail</div>
+  ${conseilRows}
 </div>
 <p style="font-size:11px;color:#aaa;font-style:italic;line-height:1.7;">⚠️ Ces résultats sont indicatifs. Ils ne constituent pas un diagnostic clinique.</p>
 <div style="background:linear-gradient(135deg,#fdf6ed,#f5ece0);border-radius:14px;padding:24px;margin-top:20px;border:1px solid #e0c9a8;text-align:center;">
   <div style="font-size:28px;margin-bottom:8px;">🌱</div>
   <div style="font-size:15px;font-weight:bold;color:#8B6F5E;margin-bottom:10px;">Tu veux aller plus loin ?</div>
-  <p style="font-size:12px;color:#6b5246;line-height:1.8;margin-bottom:18px;font-style:italic;">L'estime de soi se travaille — pas en se forçant à penser du bien de soi, mais en réapprenant à se regarder avec justesse. Si tu souhaites explorer ces dimensions en profondeur, je suis là pour ça.</p>
+  <p style="font-size:12px;color:#6b5246;line-height:1.8;margin-bottom:18px;font-style:italic;">Connaître son type et son triangle d'estime est un point de départ. Le vrai travail commence quand on explore ce qui les a construits — et comment les faire évoluer.</p>
   <a href="https://resalib.fr/p/123056" style="display:inline-block;padding:13px 28px;border-radius:24px;background:#8B6F5E;color:#fff;font-size:13px;font-weight:bold;text-decoration:none;">📞 Réserver mon appel découverte gratuit</a>
 </div>
 </body></html>`;
@@ -394,48 +465,199 @@
     return(
       <div className="fade-up">
 
-        {/* Score global */}
-        <div style={{background:"#fff",borderRadius:12,padding:20,marginBottom:14,border:"1px solid #e8ddd4"}}>
-          <GlobalGauge pct={scores.global}/>
+        {/* ── TYPE DOMINANT ── */}
+        <div style={{background:"#fff",borderRadius:12,padding:22,marginBottom:14,border:`2px solid ${result.color}40`,textAlign:"center"}}>
+          <div style={{fontSize:46,marginBottom:8}}>{result.icon}</div>
+          <div style={{fontSize:20,fontWeight:"bold",color:result.color,marginBottom:6}}>{result.label}</div>
+          <div style={{display:"flex",justifyContent:"center",gap:8,marginBottom:14,flexWrap:"wrap"}}>
+            <div style={{display:"inline-block",padding:"3px 14px",borderRadius:12,background:fam.bg,color:fam.color,fontSize:11,fontWeight:"bold"}}>{result.famille}</div>
+            <div style={{display:"inline-block",padding:"3px 14px",borderRadius:12,background:niveauDisplay.bg,color:niveauDisplay.color,fontSize:11,fontWeight:"bold",border:`1px solid ${niveauDisplay.border}`}}>{niveauDisplay.label}</div>
+          </div>
+          <p style={{fontSize:12,color:MID,lineHeight:1.85,fontStyle:"italic",textAlign:"left",padding:"12px 14px",borderRadius:8,background:result.light,border:`1px solid ${result.border}`}}>
+            {result.resume}
+          </p>
         </div>
 
-        {/* Triangle */}
+        <div style={{background:niveauDisplay.bg,borderRadius:10,padding:14,marginBottom:8,border:`1px solid ${niveauDisplay.color}30`}}>
+          <span style={{fontSize:11,fontWeight:"bold",color:niveauDisplay.color}}>Niveau — {niveauDisplay.label} : </span>
+          <span style={{fontSize:11,color:MID,fontStyle:"italic"}}>{niveauDisplay.desc}</span>
+        </div>
+
+        <div style={{background:fam.bg,borderRadius:10,padding:14,marginBottom:14,border:`1px solid ${fam.color}30`}}>
+          <span style={{fontSize:11,fontWeight:"bold",color:fam.color}}>Famille : {result.famille} — </span>
+          <span style={{fontSize:11,color:MID,fontStyle:"italic"}}>{fam.desc}</span>
+        </div>
+
+        {/* ── TYPES BARRES ── */}
+        {(()=>{
+          const GROUPE=[
+            {
+              key:"Métabolisé", icon:"🌿", color:"#4A7C6E", bg:"#EBF5F2", border:"#A8D4CA",
+              lignes:[
+                {baseId:"CONFIANT", troubleId:"CONFIANT_CREATEUR", troubleSeuil:75},
+              ]
+            },
+            {
+              key:"Hypo", icon:"🌫️", color:"#5A6E9E", bg:"#E8ECF6", border:"#B8C4DC",
+              lignes:[
+                {baseId:"EFFACE",  troubleId:"UTILISE",   troubleSeuil:73},
+                {baseId:"DOUTANT", troubleId:"SCEPTIQUE", troubleSeuil:73},
+              ]
+            },
+            {
+              key:"Hyper", icon:"🔥", color:"#B85C2E", bg:"#FDF0E8", border:"#E8C09A",
+              lignes:[
+                {baseId:"FLAMBOYANT", troubleId:"MEPRISANT",     troubleSeuil:73},
+                {baseId:"SOUHAIT",    troubleId:"GRANDIOSE",     troubleSeuil:73},
+                {baseId:"COMBAT",     troubleId:"COMBAT_TROUBLE", troubleSeuil:73},
+              ]
+            },
+          ];
+          return(
+            <div style={{background:"#fff",borderRadius:12,padding:20,marginBottom:14,border:"1px solid #e8ddd4"}}>
+              <div style={{fontSize:13,fontWeight:"bold",color:DARK,marginBottom:4}}>📊 Répartition des tendances</div>
+              <div style={{fontSize:11,color:MID,fontStyle:"italic",marginBottom:14,lineHeight:1.6}}>Chaque barre montre l'intensité d'une tendance. Ton profil final est <b>unique</b> — c'est le type dominant, escaladé en trouble si le seuil est atteint.</div>
+              {GROUPE.map(grp=>(
+                <div key={grp.key} style={{marginBottom:18}}>
+                  <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:10,paddingBottom:6,borderBottom:`2px solid ${grp.border}`}}>
+                    <span style={{fontSize:12}}>{grp.icon}</span>
+                    <span style={{fontSize:11,fontWeight:"bold",color:grp.color,textTransform:"uppercase",letterSpacing:"0.5px"}}>{grp.key}</span>
+                  </div>
+                  {grp.lignes.map(({baseId,troubleId,troubleSeuil})=>{
+                    const t=TYPES[baseId];
+                    const tr=TYPES[troubleId];
+                    const p=scores.typePct[baseId];
+                    const isResult=scores.resultType===baseId||scores.resultType===troubleId;
+                    // N'afficher la ligne trouble QUE si c'est le résultat réel
+                    const showTrouble=isResult&&scores.resultType===troubleId;
+                    return(
+                      <div key={baseId} style={{marginBottom:12,padding:"10px 12px",borderRadius:9,background:isResult?t.light:"transparent",border:isResult?`1px solid ${t.border}`:"1px solid transparent"}}>
+                        {/* Ligne Trait */}
+                        <div style={{marginBottom:showTrouble?8:0}}>
+                          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
+                            <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
+                              <span style={{fontSize:12}}>{t.icon}</span>
+                              <span style={{fontSize:12,fontWeight:isResult?"bold":"normal",color:DARK}}>{t.label}</span>
+                              <span style={{fontSize:9,padding:"1px 6px",borderRadius:8,background:t.color+"22",color:t.color,border:`1px solid ${t.color}44`,fontWeight:"bold"}}>Trait</span>
+                              {isResult&&scores.resultType===baseId&&<span style={{fontSize:9,padding:"2px 8px",borderRadius:10,background:t.color,color:"#fff",fontWeight:"bold"}}>✓ Ton profil</span>}
+                            </div>
+                            <span style={{fontSize:12,fontWeight:"bold",color:t.color}}>{p}%</span>
+                          </div>
+                          <div style={{background:"#e0d8d0",borderRadius:7,height:7,overflow:"hidden"}}>
+                            <div style={{width:`${p}%`,height:"100%",background:t.color,borderRadius:7,transition:"width 1.3s cubic-bezier(0.23,1,0.32,1)"}}/>
+                          </div>
+                          {isResult&&p>=troubleSeuil&&scores.resultType!==troubleId&&(
+                            <div style={{fontSize:10,color:MID,fontStyle:"italic",marginTop:4}}>
+                              Score élevé — niveau métabolisé intégré.
+                            </div>
+                          )}
+                        </div>
+                        {/* Ligne Trouble uniquement si c'est le résultat réel */}
+                        {showTrouble&&(
+                          <div style={{paddingLeft:14,borderLeft:`2px dashed ${tr.color}60`}}>
+                            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:3,flexWrap:"wrap",gap:4}}>
+                              <div style={{display:"flex",alignItems:"center",gap:5,flexWrap:"wrap"}}>
+                                <span style={{fontSize:11}}>{tr.icon}</span>
+                                <span style={{fontSize:11,color:tr.color,fontWeight:"bold"}}>{tr.label}</span>
+                                <span style={{fontSize:9,padding:"1px 6px",borderRadius:8,background:troubleId==="CONFIANT_CREATEUR"?"#4A7C6E22":"#C0503022",color:troubleId==="CONFIANT_CREATEUR"?"#4A7C6E":"#C05030",border:`1px solid ${troubleId==="CONFIANT_CREATEUR"?"#4A7C6E44":"#C0503044"}`,fontWeight:"bold"}}>{troubleId==="CONFIANT_CREATEUR"?"Métabolisé avancé":"Trouble"}</span>
+                                <span style={{fontSize:9,padding:"2px 8px",borderRadius:10,background:tr.color,color:"#fff",fontWeight:"bold"}}>✓ Ton profil</span>
+                              </div>
+                            </div>
+                            <div style={{fontSize:10,color:MID,fontStyle:"italic",lineHeight:1.5}}>
+                              Intensité suffisante pour dépasser le trait — le profil ci-dessus est ton résultat final.
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+          );
+        })()}
+
+        {/* ── TRIANGLE ── */}
         <div style={{background:"#fff",borderRadius:12,padding:20,marginBottom:14,border:"1px solid #e8ddd4"}}>
           <div style={{fontSize:13,fontWeight:"bold",color:DARK,marginBottom:4}}>📐 Le triangle de l'estime de soi</div>
-          <div style={{fontSize:11,color:MID,fontStyle:"italic",marginBottom:16,lineHeight:1.6}}>Les 3 dimensions fondamentales. Plus la zone colorée est proche des sommets, plus l'estime est solide dans cette dimension.</div>
-          <TriangleChart scores={scores}/>
-          <div style={{marginTop:16}}>
-            {["QJS","RDS","ADS"].map(k=><ScoreBar key={k} dimId={k} pct={scores[k]}/>)}
+          <div style={{fontSize:11,color:MID,fontStyle:"italic",marginBottom:16,lineHeight:1.6}}>Les 3 dimensions fondamentales. La boussole des valeurs est affichée séparément ci-dessous.</div>
+          <TriangleChart dimPct={scores.dimPct}/>
+          <div style={{marginTop:16,paddingTop:14,borderTop:"1px solid #f0ebe5",textAlign:"center"}}>
+            <GlobalGauge pct={scores.dimGlobal}/>
           </div>
         </div>
 
-        {/* Boussole des valeurs */}
-        <div style={{background:"#fff",borderRadius:12,padding:20,marginBottom:14,border:`1px solid ${DIMS.VAL.border}`}}>
-          <div style={{fontSize:13,fontWeight:"bold",color:DARK,marginBottom:4}}>🧿 La boussole des valeurs</div>
-          <div style={{fontSize:11,color:MID,fontStyle:"italic",marginBottom:14,lineHeight:1.6}}>
-            L'estime de soi baisse quand on s'éloigne de ses valeurs — et remonte quand on prend des risques alignés avec elles. Rester dans sa zone de confort préserve de l'anxiété, mais fait baisser l'estime sur le long terme.
-          </div>
-          <ScoreBar dimId="VAL" pct={scores.VAL}/>
-        </div>
-
-        {/* Bilan par dimension */}
+        {/* ── DIMENSIONS ── */}
         <div style={{background:"#fff",borderRadius:12,padding:20,marginBottom:14,border:"1px solid #e8ddd4"}}>
           <div style={{fontSize:13,fontWeight:"bold",color:DARK,marginBottom:14}}>🔬 Bilan dimension par dimension</div>
-          {["QJS","RDS","ADS","VAL"].map(k=><DimCard key={k} dimId={k} pct={scores[k]}/>)}
+          {["QJS","RDS","ADS","VAL"].map(k=>{
+            const d=DIMS[k],p=scores.dimPct[k],lv=getLevel(p),profile=getDimProfile(k,p);
+            return(
+              <div key={k} style={{background:"#fff",borderRadius:10,padding:16,marginBottom:10,border:`1px solid ${d.border}`,borderLeft:`4px solid ${d.color}`}}>
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
+                  <div style={{display:"flex",alignItems:"center",gap:8}}>
+                    <span style={{fontSize:16}}>{d.icon}</span>
+                    <div>
+                      <div style={{fontSize:12,fontWeight:"bold",color:d.color}}>{d.label}</div>
+                      <span style={{fontSize:9,padding:"2px 7px",borderRadius:8,background:lv.bg,color:lv.color,fontWeight:"bold",border:`1px solid ${lv.border}`,display:"inline-block",marginTop:2}}>{lv.label}</span>
+                    </div>
+                  </div>
+                  <div style={{fontSize:20,fontWeight:"bold",color:d.color}}>{p}%</div>
+                </div>
+                <div style={{background:"#e0d8d0",borderRadius:6,height:6,overflow:"hidden",marginBottom:10}}>
+                  <div style={{width:`${p}%`,height:"100%",background:d.color,borderRadius:6,transition:"width 1.3s cubic-bezier(0.23,1,0.32,1)"}}/>
+                </div>
+                <div style={{fontSize:11,fontWeight:"bold",color:d.color,marginBottom:4}}>{profile.titre}</div>
+                <p style={{fontSize:11,color:MID,lineHeight:1.75,fontStyle:"italic",margin:0}}>{profile.texte}</p>
+              </div>
+            );
+          })}
         </div>
 
-        {/* Insights croisés */}
+        {/* ── PORTRAIT ── */}
+        <div style={{background:"#fff",borderRadius:12,padding:20,marginBottom:14,border:`1px solid ${result.border}`,borderLeft:`4px solid ${result.color}`}}>
+          <div style={{fontSize:13,fontWeight:"bold",color:result.color,marginBottom:12}}>📖 Portrait — {result.label}</div>
+          {result.portrait.split("\n\n").map((para,i)=>(
+            <p key={i} style={{fontSize:12,color:MID,lineHeight:1.85,fontStyle:"italic",marginBottom:i<result.portrait.split("\n\n").length-1?12:0}}>{para}</p>
+          ))}
+        </div>
+
+        {/* ── FORCES & POINTS ── */}
         <div style={{background:"#fff",borderRadius:12,padding:20,marginBottom:14,border:"1px solid #e8ddd4"}}>
-          <div style={{fontSize:13,fontWeight:"bold",color:DARK,marginBottom:4}}>🔎 Ce que tes réponses révèlent</div>
-          <div style={{fontSize:11,color:MID,fontStyle:"italic",marginBottom:14,lineHeight:1.6}}>Lectures croisées issues de l'analyse de l'ensemble de tes réponses.</div>
-          {insights.map((it,i)=>(
-            <div key={i} style={{marginBottom:10,padding:"12px 14px",borderRadius:10,background:it.bg,border:`1px solid ${it.border}`}}>
-              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
-                <span style={{fontSize:15}}>{it.icon}</span>
-                <span style={{fontSize:12,fontWeight:"bold",color:it.color}}>{it.title}</span>
-              </div>
-              <p style={{fontSize:11,color:MID,lineHeight:1.75,margin:0}}>{it.body}</p>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+            <div style={{background:"#f0fdf4",borderRadius:10,padding:14,border:"1px solid #c8e6c9"}}>
+              <div style={{fontSize:10,fontWeight:"bold",color:"#2e7d32",marginBottom:8,textTransform:"uppercase",letterSpacing:1}}>✓ Tes forces</div>
+              {result.forces.map((f,i)=><div key={i} style={{fontSize:11,color:DARK,marginBottom:6,lineHeight:1.55}}>• {f}</div>)}
             </div>
+            <div style={{background:"#fff8f0",borderRadius:10,padding:14,border:"1px solid #ffcc80"}}>
+              <div style={{fontSize:10,fontWeight:"bold",color:"#e65100",marginBottom:8,textTransform:"uppercase",letterSpacing:1}}>⚠ Points d'attention</div>
+              {result.points.map((p,i)=><div key={i} style={{fontSize:11,color:DARK,marginBottom:6,lineHeight:1.55}}>• {p}</div>)}
+            </div>
+          </div>
+        </div>
+
+        {/* ── TYPE SECONDAIRE ── */}
+        {secondType&&secondType[1]>=30&&(
+          <div style={{background:BG2,borderRadius:12,padding:16,marginBottom:14,border:"1px solid #e8ddd4"}}>
+            <div style={{fontSize:12,fontWeight:"bold",color:DARK,marginBottom:6}}>
+              {TYPES[secondType[0]].icon} Couleur secondaire notable : {TYPES[secondType[0]].label} ({secondType[1]}%)
+            </div>
+            <p style={{fontSize:11,color:MID,lineHeight:1.75,fontStyle:"italic"}}>
+              {secondType[0]==="CONFIANT"&&"Des ressources sécures bien présentes viennent tempérer ton type dominant — une capacité à revenir à toi que tu sous-estimes peut-être."}
+              {secondType[0]==="EFFACE"&&"Une tendance à l'effacement vient en second plan — dans certains contextes, tu peux avoir du mal à tenir ta place."}
+              {secondType[0]==="DOUTANT"&&"Des moments de doute intense peuvent coexister avec ton profil dominant — une voix qui hésite juste derrière la façade."}
+              {secondType[0]==="FLAMBOYANT"&&"Une tendance flamboyante vient compléter ton profil — le besoin d'être vu(e) et reconnu(e) n'est jamais très loin."}
+              {secondType[0]==="SOUHAIT"&&"Une part souhaitante reste active — des aspirations grandioses qui coexistent avec ton style dominant, sans toujours trouver leur traduction concrète."}
+              {secondType[0]==="COMBAT"&&"Une énergie combattante est présente en second plan — elle peut être une ressource ou devenir un réflexe d'opposition selon les contextes."}
+            </p>
+          </div>
+        )}
+
+        {/* ── CONSEILS ── */}
+        <div style={{background:"#fff",borderRadius:12,padding:20,marginBottom:14,border:"1px solid #e8ddd4"}}>
+          <div style={{fontSize:13,fontWeight:"bold",color:DARK,marginBottom:14}}>💬 Pistes de travail</div>
+          {result.conseils.map((c,i)=>(
+            <div key={i} style={{marginBottom:10,padding:"10px 14px",borderRadius:8,background:"#FFF8F2",border:"1px dashed rgba(139,111,94,0.4)",fontSize:12,color:MID,fontStyle:"italic",lineHeight:1.75}}>{c}</div>
           ))}
         </div>
 
@@ -443,12 +665,12 @@
           ⚠️ Ces résultats sont indicatifs et basés sur tes propres réponses. Ils ne constituent pas un diagnostic clinique et ne remplacent pas un accompagnement professionnel.
         </div>
 
-        {/* CTA */}
+        {/* ── CTA ── */}
         <div style={{background:"linear-gradient(135deg,#fdf6ed,#f5ece0)",borderRadius:14,padding:22,marginBottom:14,border:`1px solid ${ACCENT}40`,textAlign:"center"}}>
           <div style={{fontSize:20,marginBottom:8}}>🌱</div>
           <div style={{fontSize:14,fontWeight:"bold",color:ACCENT,marginBottom:10}}>Tu veux aller plus loin ?</div>
           <p style={{fontSize:12,color:MID,lineHeight:1.8,marginBottom:16,fontStyle:"italic"}}>
-            L'estime de soi se travaille — pas en se forçant à penser du bien de soi, mais en réapprenant à se regarder avec justesse. Si tu souhaites explorer ces dimensions plus en profondeur, je suis là pour ça.
+            Connaître son type et son triangle d'estime est un point de départ. Le vrai travail commence quand on explore ce qui les a construits — et comment les faire évoluer.
           </p>
           <a href="https://resalib.fr/p/123056" target="_blank" rel="noopener noreferrer"
             style={{display:"inline-block",padding:"13px 28px",borderRadius:24,background:ACCENT,color:"#fff",fontSize:13,fontWeight:"bold",textDecoration:"none",boxShadow:`0 4px 14px ${ACCENT}40`}}>
@@ -456,16 +678,12 @@
           </a>
         </div>
 
-        {/* Email */}
+        {/* ── EMAIL ── */}
         <div style={{background:"#fff",borderRadius:12,padding:20,border:"1px solid #e8ddd4"}}>
           <div style={{fontSize:13,fontWeight:"bold",color:DARK,marginBottom:4}}>📧 Recevoir mes résultats par e-mail</div>
-          {email
-            ?<div style={{fontSize:12,color:MID,marginBottom:14}}>Les résultats seront envoyés à <b>{email}</b>.</div>
-            :<div style={{fontSize:12,color:"#F57C00",marginBottom:14}}>⚠️ Aucune adresse e-mail renseignée.</div>
-          }
+          {email?<div style={{fontSize:12,color:MID,marginBottom:14}}>Les résultats seront envoyés à <b>{email}</b>.</div>:<div style={{fontSize:12,color:"#F57C00",marginBottom:14}}>⚠️ Aucune adresse e-mail renseignée.</div>}
           {sendStatus!=="success"&&(
-            <button onClick={sendEmail} disabled={sendStatus==="sending"}
-              style={{padding:"11px 24px",borderRadius:24,border:"none",background:sendStatus==="sending"?"#ccc":ACCENT,color:"#fff",fontSize:14,fontWeight:"bold",transition:"background 0.2s"}}>
+            <button onClick={sendEmail} disabled={sendStatus==="sending"} style={{padding:"11px 24px",borderRadius:24,border:"none",background:sendStatus==="sending"?"#ccc":ACCENT,color:"#fff",fontSize:14,fontWeight:"bold",transition:"background 0.2s"}}>
               {sendStatus==="sending"?"📨 Envoi en cours…":"📧 Envoyer mes résultats"}
             </button>
           )}
@@ -479,7 +697,6 @@
           )}
           {sendStatus==="no-email"&&<div style={{marginTop:10,fontSize:12,color:"#F57C00",background:"#fff8f0",borderRadius:8,padding:"10px 14px"}}>⚠️ Renseigne ton e-mail à l'étape 1.</div>}
         </div>
-
       </div>
     );
   }
@@ -495,8 +712,9 @@
     useEffect(()=>{ if(topRef.current)topRef.current.scrollIntoView({behavior:"smooth"}); },[step]);
 
     const currentTheme=step>=1&&step<=N?THEMES[step-1]:null;
-    const themeAnswered=currentTheme?currentTheme.questions.every(q=>answers[q.id]!==undefined):true;
-    const scores=step===N+1?computeScores(answers):null;
+    const currentQs=currentTheme?currentTheme.qids.map(id=>ALL_QUESTIONS.find(q=>q.id===id)).filter(Boolean):[];
+    const themeAnswered=currentQs.length>0?currentQs.every(q=>answers[q.id]!==undefined):true;
+    const scores=step===N+1?computeAll(answers):null;
 
     return(
       <div ref={topRef} style={{minHeight:"100vh",background:BG,padding:"32px 16px",fontFamily:"Georgia,serif"}}>
@@ -505,8 +723,8 @@
           <div style={{marginBottom:step===0?28:16}}>
             {step===0?(
               <>
-                <div style={{fontSize:24,fontWeight:"bold",color:DARK,marginBottom:4}}>Estime de soi</div>
-                <div style={{fontSize:13,color:MID,fontStyle:"italic",lineHeight:1.6}}>32 questions · 4 dimensions · Triangle & boussole des valeurs</div>
+                <div style={{fontSize:24,fontWeight:"bold",color:DARK,marginBottom:4}}>Mon estime de soi</div>
+                <div style={{fontSize:13,color:MID,fontStyle:"italic",lineHeight:1.6}}>52 questions · 9 thèmes · Type & Triangle</div>
               </>
             ):step<=N?<ProgressBar step={step} total={N}/>:null}
           </div>
@@ -515,18 +733,41 @@
             <div className="fade-up">
               <div style={{background:"#fff",borderRadius:12,padding:22,marginBottom:16,border:"1px solid #e8ddd4"}}>
                 <p style={{fontSize:13,color:DARK,lineHeight:1.9,marginBottom:16}}>
-                  L'<b>estime de soi</b> n'est pas figée — elle monte et descend au quotidien selon nos actions, nos relations et notre accord avec nos valeurs profondes. Ce questionnaire explore les 3 dimensions du triangle de l'estime de soi, plus la boussole des valeurs comme régulateur central.
+                  Ce questionnaire combine deux évaluations : ton <b>profil d'estime de soi</b> parmi 12 possibles (6 traits de base, 1 métabolisé avancé, 5 troubles), et ton <b>triangle de l'estime</b> sur 4 dimensions fondamentales.
                 </p>
-                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:16}}>
-                  {Object.values(DIMS).map(d=>(
-                    <div key={d.id} style={{padding:"10px 12px",borderRadius:10,background:d.light,border:`1px solid ${d.border}`,display:"flex",alignItems:"center",gap:8}}>
-                      <span style={{fontSize:16}}>{d.icon}</span>
-                      <div style={{fontSize:11,fontWeight:"bold",color:d.color}}>{d.label}</div>
+                <div style={{marginBottom:14}}>
+                  {[
+                    {famille:"Métabolisé", color:"#4A7C6E", bg:"#EBF5F2", border:"#A8D4CA", types:["CONFIANT","CONFIANT_CREATEUR"]},
+                    {famille:"Hypo", color:"#5A6E9E", bg:"#E8ECF6", border:"#B8C4DC", types:["EFFACE","UTILISE","DOUTANT","SCEPTIQUE"]},
+                    {famille:"Hyper", color:"#B85C2E", bg:"#FDF0E8", border:"#E8C09A", types:["FLAMBOYANT","MEPRISANT","SOUHAIT","GRANDIOSE","COMBAT","COMBAT_TROUBLE"]},
+                  ].map(grp=>(
+                    <div key={grp.famille} style={{marginBottom:10,padding:"10px 12px",borderRadius:9,background:grp.bg,border:`1px solid ${grp.border}`}}>
+                      <div style={{fontSize:9,fontWeight:"bold",color:grp.color,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:7}}>{grp.famille}</div>
+                      <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+                        {grp.types.map(id=>{
+                          const t=TYPES[id];
+                          return(
+                            <div key={id} style={{display:"flex",alignItems:"center",gap:4,padding:"3px 8px",borderRadius:7,background:"#fff",border:`1px solid ${t.color}40`}}>
+                              <span style={{fontSize:11}}>{t.icon}</span>
+                              <span style={{fontSize:10,color:t.color,fontWeight:"bold"}}>{t.label}</span>
+                              <span style={{fontSize:8,padding:"1px 5px",borderRadius:6,background:t.color+"20",color:t.color,border:`1px solid ${t.color}40`}}>{t.niveau==="métabolisé"?"Métabolisé":t.niveau==="trouble"?"Trouble":"Trait"}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                   ))}
                 </div>
-                <div style={{padding:"10px 14px",borderRadius:8,background:"#f5f0ed",border:`1px solid ${ACCENT}30`,fontSize:12,color:MID,lineHeight:1.7}}>
-                  📐 Inspiré du <b>triangle de l'estime de soi</b> (Qui je suis · Regard sur soi · Amour de soi) et de la <b>boussole des valeurs</b> — ce qui nous sert de Nord intérieur au quotidien.
+                <div style={{padding:"10px 12px",borderRadius:9,background:"#f5f0ed",border:`1px solid ${ACCENT}30`}}>
+                  <div style={{fontSize:9,fontWeight:"bold",color:ACCENT,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:7}}>Triangle & boussole</div>
+                  <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+                    {Object.values(DIMS).map(d=>(
+                      <div key={d.id} style={{display:"flex",alignItems:"center",gap:4,padding:"3px 8px",borderRadius:7,background:"#fff",border:`1px solid ${d.color}40`}}>
+                        <span style={{fontSize:11}}>{d.icon}</span>
+                        <span style={{fontSize:10,color:d.color,fontWeight:"bold"}}>{d.label}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
 
@@ -534,35 +775,31 @@
                 <div style={{fontSize:13,fontWeight:"bold",color:DARK,marginBottom:14}}>Quelques infos pour personnaliser tes résultats</div>
                 <div style={{marginBottom:12}}>
                   <div style={{fontSize:12,color:MID,marginBottom:4,fontWeight:"bold"}}>Prénom</div>
-                  <input value={prenom} onChange={e=>setPrenom(e.target.value)} placeholder="Ton prénom..."
-                    style={{width:"100%",padding:"10px 14px",borderRadius:8,border:"1.5px solid #e0d4c8",background:"#fff",fontSize:14,color:DARK,outline:"none"}}/>
+                  <input value={prenom} onChange={e=>setPrenom(e.target.value)} placeholder="Ton prénom..." style={{width:"100%",padding:"10px 14px",borderRadius:8,border:"1.5px solid #e0d4c8",background:"#fff",fontSize:14,color:DARK,outline:"none"}}/>
                 </div>
                 <div>
                   <div style={{fontSize:12,color:MID,marginBottom:4,fontWeight:"bold"}}>Adresse e-mail</div>
-                  <input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="ton@email.com"
-                    style={{width:"100%",padding:"10px 14px",borderRadius:8,border:"1.5px solid #e0d4c8",background:"#fff",fontSize:14,color:DARK,outline:"none"}}/>
+                  <input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="ton@email.com" style={{width:"100%",padding:"10px 14px",borderRadius:8,border:"1.5px solid #e0d4c8",background:"#fff",fontSize:14,color:DARK,outline:"none"}}/>
                   <div style={{display:"flex",alignItems:"center",gap:6,marginTop:8,background:"#f0fdf4",borderRadius:8,padding:"8px 12px"}}>
-                    <span>🔒</span>
-                    <span style={{fontSize:11,color:"#4CAF50",fontStyle:"italic"}}>Uniquement pour t'envoyer tes résultats. Aucun spam.</span>
+                    <span>🔒</span><span style={{fontSize:11,color:"#4CAF50",fontStyle:"italic"}}>Uniquement pour t'envoyer tes résultats. Aucun spam.</span>
                   </div>
                 </div>
               </div>
 
               <div style={{fontSize:12,color:LIGHT,fontStyle:"italic",marginBottom:16,lineHeight:1.7,padding:"10px 14px",background:"#fff",borderRadius:8,border:"1px solid #e8ddd4"}}>
-                ℹ️ Réponds spontanément avec ta première impression — il n'y a pas de bonnes ou mauvaises réponses. Le questionnaire prend environ 8 minutes.
+                ℹ️ Réponds spontanément — il n'y a pas de bonnes ou mauvaises réponses. Le questionnaire prend environ 10–12 minutes.
               </div>
             </div>
           )}
 
           {currentTheme&&(
             <div className="fade-up" key={step}>
-              <div style={{marginBottom:22,padding:"14px 16px",background:"#fff",borderRadius:10,border:`1px solid ${DIMS[currentTheme.id].border}`,borderLeft:`4px solid ${DIMS[currentTheme.id].color}`}}>
+              <div style={{marginBottom:22,padding:"14px 16px",background:"#fff",borderRadius:10,border:"1px solid #e0d4c8",borderLeft:`4px solid ${ACCENT}`}}>
                 <div style={{fontSize:15,fontWeight:"bold",color:DARK,marginBottom:3}}>{currentTheme.icon} {currentTheme.title}</div>
-                <div style={{fontSize:12,color:MID,fontStyle:"italic"}}>{currentTheme.subtitle}</div>
               </div>
-              {currentTheme.questions.map((q,i)=>(
+              {currentQs.map((q,i)=>q?(
                 <LikertQuestion key={q.id} question={q} value={answers[q.id]} onChange={val=>setAnswers(a=>({...a,[q.id]:val}))} index={i}/>
-              ))}
+              ):null)}
               {!themeAnswered&&<div style={{fontSize:12,color:"#F57C00",fontStyle:"italic",marginBottom:12}}>⚠️ Réponds à toutes les affirmations pour continuer.</div>}
             </div>
           )}
@@ -580,12 +817,9 @@
           )}
           {step===N+1&&(
             <div style={{marginTop:24,textAlign:"center"}}>
-              <button onClick={()=>{setStep(0);setAnswers({});}} style={{padding:"12px 28px",borderRadius:24,border:`1.5px solid ${ACCENT}`,background:"transparent",color:ACCENT,fontSize:14}}>
-                ↺ Recommencer
-              </button>
+              <button onClick={()=>{setStep(0);setAnswers({});}} style={{padding:"12px 28px",borderRadius:24,border:`1.5px solid ${ACCENT}`,background:"transparent",color:ACCENT,fontSize:14}}>↺ Recommencer</button>
             </div>
           )}
-
         </div>
       </div>
     );
