@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Estime de soi</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:#F0ECE6;font-family:Georgia,serif;min-height:100vh;}
+    button{font-family:Georgia,serif;cursor:pointer;}
+    input{font-family:Georgia,serif;}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:none;}}
+    .fade-up{animation:fadeUp 0.35s ease both;}
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+  const { useState, useEffect, useRef } = React;
+
+  const ACCENT="#8B6F5E", DARK="#2a1f1a", MID="#6b5246", BG="#F0ECE6", BG2="#F7F4F0", LIGHT="#aaaaaa";
+  const EMAILJS_SERVICE_ID  = "service_0kouxat";
+  const EMAILJS_TEMPLATE_ID = "template_kt263tv";
+  const EMAILJS_PUBLIC_KEY  = "uhjbdrXFqWGx4Rltl";
+
+  const DIMS = {
+    QJS: { id:"QJS", label:"Qui je suis",           icon:"🧭", color:"#5C7A6E", light:"#EDF4F1", border:"#B2D4CA" },
+    RDS: { id:"RDS", label:"Le regard sur soi",     icon:"👁️", color:"#7A5C8B", light:"#F3EDF7", border:"#C9B2D4" },
+    ADS: { id:"ADS", label:"L'amour de soi",        icon:"🌸", color:"#B85C6E", light:"#FDF0F2", border:"#E8B8C2" },
+    VAL: { id:"VAL", label:"La boussole des valeurs",icon:"🧿", color:"#8B6F5E", light:"#F5F0ED", border:"#D4B8A8" },
+  };
+
+  const THEMES = [
+    {
+      id:"QJS", title:"Qui je suis", icon:"🧭",
+      subtitle:"Ta clarté identitaire — à quel point tu te connais toi-même, tu restes ancré(e) dans qui tu es, et tu sais ce qui te définit vraiment.",
+      questions:[
+        {id:"q1",  dim:"QJS", dir:+1, text:"Je sais clairement ce qui est important pour moi — mes valeurs, ce qui me tient vraiment à cœur."},
+        {id:"q2",  dim:"QJS", dir:-1, text:"Je change d'opinion ou d'attitude selon la personne à qui je parle, sans vraiment m'en rendre compte."},
+        {id:"q3",  dim:"QJS", dir:+1, text:"Je peux nommer ce qui me rend unique — mes forces, ma façon particulière de voir les choses."},
+        {id:"q4",  dim:"QJS", dir:-1, text:"J'ai du mal à savoir ce que je veux vraiment, indépendamment de ce que les autres attendent de moi."},
+        {id:"q5",  dim:"QJS", dir:+1, text:"Dans les situations difficiles, je reste en contact avec qui je suis — je ne me perds pas dans l'autre."},
+        {id:"q6",  dim:"QJS", dir:-1, text:"Je me sens souvent «aspiré(e)» par la personnalité ou les attentes des gens autour de moi."},
+        {id:"q7",  dim:"QJS", dir:+1, text:"J'ai un rapport stable à mes propres convictions, même quand on les remet en question."},
+        {id:"q8",  dim:"QJS", dir:-1, text:"Quand quelqu'un me critique fortement, je remets en question des aspects fondamentaux de qui je suis."},
+      ]
+    },
+    {
+      id:"RDS", title:"Le regard sur soi", icon:"👁️",
+      subtitle:"Ta relation au regard des autres et la vision que tu as de toi-même — comment tu te perçois, et à quel point tu dépends de l'extérieur pour te sentir bien.",
+      questions:[
+        {id:"q9",  dim:"RDS", dir:-1, text:"J'ai besoin que les autres m'approuvent ou m'apprécient pour me sentir bien dans ma peau."},
+        {id:"q10", dim:"RDS", dir:+1, text:"L'opinion des autres m'intéresse, mais elle ne définit pas ma valeur à mes propres yeux."},
+        {id:"q11", dim:"RDS", dir:-1, text:"Je modifie souvent ce que je dis ou montre de moi pour ne pas être jugé(e) ou mal perçu(e)."},
+        {id:"q12", dim:"RDS", dir:-1, text:"Une critique, même légère, peut déstabiliser mon image de moi pour longtemps."},
+        {id:"q13", dim:"RDS", dir:+1, text:"Je peux recevoir un désaccord ou une critique sans me sentir attaqué(e) dans ma valeur profonde."},
+        {id:"q14", dim:"RDS", dir:-1, text:"Je me compare régulièrement aux autres et j'en ressors souvent avec un sentiment d'infériorité."},
+        {id:"q15", dim:"RDS", dir:-1, text:"La peur du regard des autres limite ce que j'ose dire, faire ou montrer dans ma vie."},
+        {id:"q16", dim:"RDS", dir:-1, text:"Je ressens souvent un décalage inconfortable entre ce que je montre aux autres et qui je suis vraiment."},
+      ]
+    },
+    {
+      id:"ADS", title:"L'amour de soi", icon:"🌸",
+      subtitle:"Ta voix intérieure, ta capacité à te traiter avec bienveillance et douceur, et ton rapport à tes propres imperfections.",
+      questions:[
+        {id:"q17", dim:"ADS", dir:-1, text:"Ma voix intérieure est souvent plus dure et exigeante envers moi qu'elle ne le serait envers n'importe qui d'autre."},
+        {id:"q18", dim:"ADS", dir:+1, text:"Je peux me reposer, prendre du plaisir, sans culpabilité ni sentiment de ne pas le mériter."},
+        {id:"q19", dim:"ADS", dir:-1, text:"Quand je fais une erreur, je me juge très sévèrement et j'ai du mal à m'en remettre."},
+        {id:"q20", dim:"ADS", dir:+1, text:"Je peux m'offrir de la compassion dans les moments difficiles, comme je le ferais pour un ami proche."},
+        {id:"q21", dim:"ADS", dir:-1, text:"J'ai souvent le sentiment de ne pas être assez — pas assez bien, pas assez accompli(e), pas assez intéressant(e)."},
+        {id:"q22", dim:"ADS", dir:+1, text:"Je peux reconnaître mes qualités et mes réussites sans les minimiser ou les attribuer à la chance."},
+        {id:"q23", dim:"ADS", dir:-1, text:"Il m'arrive de ressentir de la honte à propos de certaines parties de moi que je cache ou voudrais effacer."},
+        {id:"q24", dim:"ADS", dir:+1, text:"Même dans mes imperfections, je peux me regarder avec une certaine douceur et acceptation."},
+      ]
+    },
+    {
+      id:"VAL", title:"La boussole des valeurs", icon:"🧿",
+      subtitle:"À quel point tu vis en accord avec ce qui compte vraiment pour toi — et comment tu navigues quand tu t'en éloignes.",
+      questions:[
+        {id:"q25", dim:"VAL", dir:+1, text:"Je sais identifier les moments où mes actions ne sont pas alignées avec ce qui compte vraiment pour moi."},
+        {id:"q26", dim:"VAL", dir:-1, text:"Je me retrouve souvent à faire des choses qui ne correspondent pas à mes valeurs profondes, sans réussir à changer."},
+        {id:"q27", dim:"VAL", dir:+1, text:"Quand je m'éloigne de mes valeurs, je peux le reconnaître sans me condamner, et chercher à me réajuster."},
+        {id:"q28", dim:"VAL", dir:-1, text:"Je sors rarement de ma zone de confort — j'évite les situations nouvelles ou risquées même quand elles pourraient me faire grandir."},
+        {id:"q29", dim:"VAL", dir:+1, text:"Je prends régulièrement des risques ou relève des défis qui me font sortir de ma zone de confort, même si c'est inconfortable."},
+        {id:"q30", dim:"VAL", dir:-1, text:"J'ai du mal à identifier des petites choses du quotidien dont je suis fier(e) — mes «victoires simples» passent souvent inaperçues."},
+        {id:"q31", dim:"VAL", dir:+1, text:"Je peux nommer des choses concrètes que je fais dans ma vie qui font monter mon estime de moi."},
+        {id:"q32", dim:"VAL", dir:-1, text:"Je minimise souvent mes efforts avec des «c'est pas grand-chose» ou «n'importe qui aurait fait ça»."},
+      ]
+    },
+  ];
+
+  const LIKERT=[
+    {val:1,label:"Pas moi"},
+    {val:2,label:"Rarement"},
+    {val:3,label:"Parfois"},
+    {val:4,label:"Souvent"},
+    {val:5,label:"Tout à fait moi"},
+  ];
+
+  function getLevel(pct){
+    if(pct>=70) return {label:"Solide",          color:"#4CAF50", bg:"#f0fdf4", border:"#c8e6c9"};
+    if(pct>=48) return {label:"En construction", color:"#F57C00", bg:"#fff8f0", border:"#ffcc80"};
+    return             {label:"Fragilisée",      color:"#E53935", bg:"#ffebee", border:"#ffcdd2"};
+  }
+
+  function computeScores(answers){
+    const scores={};
+    THEMES.forEach(t=>{
+      let total=0;
+      t.questions.forEach(q=>{
+        const val=answers[q.id]||0;
+        total+=q.dir===+1?val:(6-val);
+      });
+      scores[t.id]=Math.round((total/(t.questions.length*5))*100);
+    });
+    scores.global=Math.round((scores.QJS+scores.RDS+scores.ADS+scores.VAL)/4);
+    return scores;
+  }
+
+  const DIM_PROFILES={
+    QJS:{
+      solide:{titre:"Une identité ancrée",texte:"Tu sais qui tu es — pas parfaitement, mais suffisamment pour ne pas te perdre quand les autres ou les circonstances te bousculent. Cette clarté identitaire est une ressource rare. Elle te permet de traverser les remises en question sans que le sol se dérobe sous tes pieds."},
+      moyen:{titre:"Une identité en chemin",texte:"Tu as des repères sur toi-même, mais ils peuvent vaciller selon les contextes ou les personnes. Il arrive que les attentes des autres prennent le dessus sur les tiennes. Mieux se connaître, c'est aussi mieux se tenir — c'est un travail vivant et continu."},
+      faible:{titre:"Une identité à clarifier",texte:"La question «qui je suis vraiment» semble encore ouverte, voire inconfortable. Tu peux te sentir influencé(e), instable ou peu sûr(e) de ce qui te définit. Ce n'est pas un manque — c'est souvent le point de départ d'un vrai travail de fond sur soi."},
+    },
+    RDS:{
+      solide:{titre:"Un regard ancré en toi",texte:"Tu n'es pas imperméable au regard des autres, mais tu n'en dépends pas. Tu peux recevoir une critique sans te sentir anéanti(e), et te montrer tel(le) que tu es sans trop de filtre. C'est une liberté intérieure précieuse."},
+      moyen:{titre:"Un regard encore dépendant",texte:"L'avis des autres compte — parfois trop. Une critique peut ébranler ton image de toi, et tu adaptes parfois ce que tu montres pour éviter le jugement. C'est humain, mais ça coûte. Ancrer ton regard en toi plutôt qu'en dehors fait partie du chemin."},
+      faible:{titre:"Un regard largement extérieur",texte:"Ton image de toi est fortement tributaire de ce que les autres pensent, disent ou font. La comparaison, la peur du jugement et la censure de toi-même sont des signaux que quelque chose mérite attention. C'est un terrain qui répond bien à l'accompagnement."},
+    },
+    ADS:{
+      solide:{titre:"Une relation à soi bienveillante",texte:"Tu sais te traiter avec douceur — pas systématiquement, mais souvent. Tu peux reconnaître tes réussites, t'offrir de la compassion dans les moments durs, et accepter tes imperfections sans te condamner. C'est le fondement de toute estime solide."},
+      moyen:{titre:"Un amour de soi à cultiver",texte:"Tu as des capacités de bienveillance envers toi-même, mais elles ne sont pas toujours au rendez-vous. La voix critique est souvent là, et elle sait être sévère. Il y a de la place pour développer une relation à toi-même plus douce et plus juste."},
+      faible:{titre:"Une voix intérieure souvent dure",texte:"Tu te traites souvent bien plus sévèrement que tu ne traiterais quelqu'un que tu aimes. La honte, l'auto-critique, le sentiment de ne pas être assez — ces expériences sont fréquentes. Ce n'est pas une vérité sur toi : c'est une façon apprise de te regarder, et elle peut changer."},
+    },
+    VAL:{
+      solide:{titre:"Une boussole bien orientée",texte:"Tu vis globalement en accord avec ce qui compte pour toi. Tu sais te réajuster quand tu t'éloignes de tes valeurs, et tu identifies ce qui fait monter ou descendre ton estime dans le quotidien. Cette conscience est un outil puissant de régulation."},
+      moyen:{titre:"Une boussole qui cherche le Nord",texte:"Tu as des valeurs, mais le quotidien t'éloigne parfois d'elles sans que tu t'en rendes toujours compte. Les «c'est pas grave», les zones de confort qui durent, les petites victoires invisibles — autant de signaux à mieux observer pour réajuster ta trajectoire."},
+      faible:{titre:"Un écart à explorer",texte:"Il semble y avoir un décalage important entre ce que tu valorises profondément et la façon dont tu vis au quotidien. Quand ce décalage dure, l'estime de soi en pâtit. Identifier ce qui crée cet écart est souvent le premier pas vers un réalignement."},
+    },
+  };
+
+  function getDimProfile(dimId,pct){
+    const p=DIM_PROFILES[dimId];
+    if(pct>=70)return p.solide;
+    if(pct>=48)return p.moyen;
+    return p.faible;
+  }
+
+  function computeInsights(scores){
+    const items=[];
+    const dims=["QJS","RDS","ADS","VAL"];
+    const weakest=dims.reduce((a,b)=>scores[a]<scores[b]?a:b);
+    const strongest=dims.reduce((a,b)=>scores[a]>scores[b]?a:b);
+
+    const selfGap=scores.ADS-scores.RDS;
+    if(selfGap<=-20){
+      items.push({icon:"🔍",title:"Tu te traites plus durement que tu ne laisses les autres te traiter",body:"Ton score d'amour de soi est significativement plus bas que ton rapport au regard extérieur. Tu gères relativement bien les critiques des autres, mais ta voix intérieure est bien plus sévère. Le vrai travail est souvent là : à l'intérieur.",color:"#B85C6E",bg:"#FDF0F2",border:"#E8B8C2"});
+    } else if(selfGap>=20){
+      items.push({icon:"🔍",title:"Tu t'aimes mieux seul(e) qu'en présence des autres",body:"Ton amour de soi est plus solide que ton rapport au regard extérieur. Tu peux te traiter avec bienveillance en privé, mais la présence des autres fragilise cette bienveillance. La confiance en soi «au contact» est ta prochaine frontière.",color:"#7A5C8B",bg:"#F3EDF7",border:"#C9B2D4"});
+    }
+
+    if(scores.QJS-scores.ADS>=20){
+      items.push({icon:"🔍",title:"Tu sais qui tu es, mais tu as du mal à t'aimer tel(le) que tu es",body:"Ton identité est relativement claire, mais l'amour de soi reste difficile. Savoir qui on est ne suffit pas toujours pour se traiter avec douceur — c'est souvent lié à des croyances anciennes sur ce qu'on mérite ou ce qu'on «devrait» être.",color:"#5C7A6E",bg:"#EDF4F1",border:"#B2D4CA"});
+    }
+
+    if(scores.VAL<45&&scores.QJS>=55){
+      items.push({icon:"🧿",title:"Tu sais qui tu es, mais tu ne vis pas encore en accord avec ça",body:"Tu as une identité assez claire, mais un réel écart avec ta boussole de valeurs. Savoir ce qui compte pour toi ne se traduit pas encore dans tes actes quotidiens. C'est souvent là que l'estime perd le plus de terrain — dans l'espace entre qui on est et comment on vit.",color:"#8B6F5E",bg:"#F5F0ED",border:"#D4B8A8"});
+    }
+
+    if(scores.VAL<50){
+      items.push({icon:"⚡",title:"La zone de confort : un frein possible à l'estime",body:"Rester dans ce qu'on connaît préserve de l'anxiété — mais peut faire baisser l'estime de soi sur le long terme. L'estime se nourrit des petits défis relevés, des risques pris, des efforts reconnus. Identifier ce que tu pourrais oser un peu plus peut être un levier puissant.",color:"#F57C00",bg:"#fff8f0",border:"#ffcc80"});
+    }
+
+    items.push({icon:DIMS[strongest].icon,title:`Ton point d'appui : ${DIMS[strongest].label}`,body:`C'est ta dimension la plus solide (${scores[strongest]}%). En Gestalt, on part toujours de ce qui fonctionne pour aller vers ce qui résiste. Cette ressource peut être le socle de ton travail sur les zones plus fragilisées.`,color:DIMS[strongest].color,bg:DIMS[strongest].light,border:DIMS[strongest].border});
+
+    items.push({icon:DIMS[weakest].icon,title:`Terrain de travail prioritaire : ${DIMS[weakest].label}`,body:`C'est la dimension qui mérite le plus d'attention (${scores[weakest]}%). Ce n'est pas un déficit définitif — c'est simplement là que quelque chose attend d'être entendu, compris et retravaillé.`,color:DIMS[weakest].color,bg:DIMS[weakest].light,border:DIMS[weakest].border});
+
+    return items;
+  }
+
+  function ProgressBar({step,total}){
+    const pct=((step-1)/(total-1))*100;
+    const t=THEMES[step-1];
+    return(
+      <div style={{marginBottom:20}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+          <div style={{fontSize:12,color:MID,fontStyle:"italic"}}>{t?.icon} {t?.title}</div>
+          <div style={{fontSize:11,color:LIGHT}}>Thème {step}/{total}</div>
+        </div>
+        <div style={{background:"#e0d8d0",borderRadius:8,height:5,overflow:"hidden"}}>
+          <div style={{width:`${pct}%`,height:"100%",background:ACCENT,borderRadius:8,transition:"width 0.4s ease"}}/>
+        </div>
+      </div>
+    );
+  }
+
+  function LikertQuestion({question,value,onChange,index}){
+    const d=DIMS[question.dim];
+    return(
+      <div className="fade-up" style={{marginBottom:24,animationDelay:`${index*0.07}s`}}>
+        <div style={{fontSize:13,color:DARK,lineHeight:1.75,marginBottom:12,fontStyle:"italic",paddingLeft:12,borderLeft:`3px solid ${d.color}`}}>
+          « {question.text} »
+        </div>
+        <div style={{display:"flex",gap:5}}>
+          {LIKERT.map(l=>{
+            const active=value===l.val;
+            return(
+              <div key={l.val} onClick={()=>onChange(l.val)} style={{
+                flex:"1 1 0",padding:"9px 4px",borderRadius:9,textAlign:"center",cursor:"pointer",
+                border:`2px solid ${active?d.color:"#e0d4c8"}`,background:active?d.color:"#fff",
+                color:active?"#fff":MID,transition:"all 0.15s ease",fontSize:11,lineHeight:1.3,
+              }}>
+                <div style={{fontSize:15,marginBottom:2}}>{l.val}</div>
+                <div style={{fontSize:8,opacity:0.85}}>{l.label}</div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  function TriangleChart({scores}){
+    const W=300,H=260,cx=150,cy=140,R=95;
+    const toRad=d=>d*Math.PI/180;
+    const verts=[
+      {x:cx,y:cy-R,dim:"QJS"},
+      {x:cx-R*Math.cos(toRad(30)),y:cy+R*Math.sin(toRad(30)),dim:"RDS"},
+      {x:cx+R*Math.cos(toRad(30)),y:cy+R*Math.sin(toRad(30)),dim:"ADS"},
+    ];
+    const pts=verts.map(v=>({x:cx+(v.x-cx)*(scores[v.dim]/100),y:cy+(v.y-cy)*(scores[v.dim]/100),dim:v.dim}));
+    const poly=pts.map(p=>`${p.x},${p.y}`).join(" ");
+    const bgPoly=verts.map(v=>`${v.x},${v.y}`).join(" ");
+    const midPoly=verts.map(v=>`${cx+(v.x-cx)*0.5},${cy+(v.y-cy)*0.5}`).join(" ");
+    return(
+      <svg viewBox={`0 0 ${W} ${H}`} style={{width:"100%",maxWidth:300,display:"block",margin:"0 auto"}}>
+        <polygon points={bgPoly} fill="none" stroke="#ddd4ca" strokeWidth="1.5" strokeDasharray="4 3"/>
+        <polygon points={midPoly} fill="none" stroke="#ddd4ca" strokeWidth="1" strokeDasharray="2 3"/>
+        {verts.map((v,i)=><line key={i} x1={cx} y1={cy} x2={v.x} y2={v.y} stroke="#ddd4ca" strokeWidth="1"/>)}
+        <polygon points={poly} fill={ACCENT+"20"} stroke={ACCENT} strokeWidth="2"/>
+        {pts.map((p,i)=><circle key={i} cx={p.x} cy={p.y} r={5} fill={DIMS[p.dim].color} stroke="#fff" strokeWidth="2"/>)}
+        {verts.map((v,i)=>{
+          const ox=(v.x-cx)*0.32, oy=(v.y-cy)*0.32;
+          return(
+            <g key={i}>
+              <text x={v.x+ox} y={v.y+oy-(oy<0?10:-2)} textAnchor="middle" fontSize="10" fill={DIMS[v.dim].color} fontWeight="bold" fontFamily="Georgia,serif">{DIMS[v.dim].icon} {DIMS[v.dim].label}</text>
+              <text x={v.x+ox} y={v.y+oy+(oy<0?2:12)} textAnchor="middle" fontSize="12" fill={DIMS[v.dim].color} fontFamily="Georgia,serif" fontWeight="bold">{scores[v.dim]}%</text>
+            </g>
+          );
+        })}
+      </svg>
+    );
+  }
+
+  function ScoreBar({dimId,pct}){
+    const d=DIMS[dimId],lv=getLevel(pct);
+    return(
+      <div style={{marginBottom:12}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:5}}>
+          <div style={{display:"flex",alignItems:"center",gap:7}}>
+            <span style={{fontSize:14}}>{d.icon}</span>
+            <span style={{fontSize:12,color:DARK}}>{d.label}</span>
+          </div>
+          <div style={{display:"flex",alignItems:"center",gap:8}}>
+            <span style={{fontSize:9,padding:"2px 8px",borderRadius:10,background:lv.bg,color:lv.color,fontWeight:"bold",border:`1px solid ${lv.border}`}}>{lv.label}</span>
+            <span style={{fontSize:13,fontWeight:"bold",color:d.color}}>{pct}%</span>
+          </div>
+        </div>
+        <div style={{background:"#e0d8d0",borderRadius:8,height:8,overflow:"hidden"}}>
+          <div style={{width:`${pct}%`,height:"100%",background:d.color,borderRadius:8,transition:"width 1.3s cubic-bezier(0.23,1,0.32,1)"}}/>
+        </div>
+      </div>
+    );
+  }
+
+  function DimCard({dimId,pct}){
+    const d=DIMS[dimId],lv=getLevel(pct),profile=getDimProfile(dimId,pct);
+    return(
+      <div style={{background:"#fff",borderRadius:12,padding:18,marginBottom:12,border:`1px solid ${d.border}`,borderLeft:`4px solid ${d.color}`}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
+          <div style={{display:"flex",alignItems:"center",gap:8}}>
+            <span style={{fontSize:18}}>{d.icon}</span>
+            <div>
+              <div style={{fontSize:13,fontWeight:"bold",color:d.color}}>{d.label}</div>
+              <div style={{fontSize:9,padding:"2px 8px",borderRadius:10,background:lv.bg,color:lv.color,fontWeight:"bold",border:`1px solid ${lv.border}`,display:"inline-block",marginTop:2}}>{lv.label}</div>
+            </div>
+          </div>
+          <div style={{fontSize:22,fontWeight:"bold",color:d.color}}>{pct}%</div>
+        </div>
+        <div style={{background:"#e0d8d0",borderRadius:6,height:7,overflow:"hidden",marginBottom:12}}>
+          <div style={{width:`${pct}%`,height:"100%",background:d.color,borderRadius:6,transition:"width 1.3s cubic-bezier(0.23,1,0.32,1)"}}/>
+        </div>
+        <div style={{fontSize:11,fontWeight:"bold",color:d.color,marginBottom:6}}>{profile.titre}</div>
+        <p style={{fontSize:11,color:MID,lineHeight:1.75,fontStyle:"italic"}}>{profile.texte}</p>
+      </div>
+    );
+  }
+
+  function GlobalGauge({pct}){
+    const lv=getLevel(pct);
+    const toRad=d=>d*Math.PI/180;
+    const r=55,cx=90,cy=75;
+    const angle=(pct/100)*180;
+    const ax=cx+r*Math.cos(toRad(180-angle));
+    const ay=cy-r*Math.sin(toRad(180-angle));
+    const arc=(a1,a2,rr)=>{
+      const x1=cx+rr*Math.cos(toRad(180-a1)),y1=cy-rr*Math.sin(toRad(180-a1));
+      const x2=cx+rr*Math.cos(toRad(180-a2)),y2=cy-rr*Math.sin(toRad(180-a2));
+      return`M ${x1} ${y1} A ${rr} ${rr} 0 0 1 ${x2} ${y2}`;
+    };
+    return(
+      <div style={{textAlign:"center",marginBottom:8}}>
+        <svg viewBox="0 0 180 90" style={{width:"100%",maxWidth:220,display:"block",margin:"0 auto"}}>
+          <path d={arc(0,180,r)} fill="none" stroke="#e0d8d0" strokeWidth="13" strokeLinecap="round"/>
+          <path d={arc(0,angle,r)} fill="none" stroke={lv.color} strokeWidth="13" strokeLinecap="round" style={{transition:"all 1.5s cubic-bezier(0.23,1,0.32,1)"}}/>
+          <line x1={cx} y1={cy} x2={ax} y2={ay} stroke={DARK} strokeWidth="2.5" strokeLinecap="round"/>
+          <circle cx={cx} cy={cy} r={4} fill={DARK}/>
+          <text x={cx} y={cy+16} textAnchor="middle" fontSize="18" fontWeight="bold" fill={lv.color} fontFamily="Georgia,serif">{pct}%</text>
+          <text x={18} y={85} fontSize="8" fill={LIGHT} fontFamily="Georgia,serif">Fragilisée</text>
+          <text x={130} y={85} fontSize="8" fill={LIGHT} fontFamily="Georgia,serif">Solide</text>
+        </svg>
+        <div style={{fontSize:13,fontWeight:"bold",color:lv.color,marginTop:2}}>{lv.label}</div>
+        <div style={{fontSize:11,color:MID,fontStyle:"italic",marginTop:2}}>Score global d'estime de soi</div>
+      </div>
+    );
+  }
+
+  function Results({scores,prenom,email}){
+    const [sendStatus,setSendStatus]=useState("idle");
+    const [emailError,setEmailError]=useState(null);
+    const insights=computeInsights(scores);
+
+    const sendEmail=()=>{
+      if(!email){setSendStatus("no-email");return;}
+      setEmailError(null);setSendStatus("sending");
+      if(!window.emailjs){setEmailError("EmailJS non chargé.");setSendStatus("error");return;}
+      try{
+        window.emailjs.init({publicKey:EMAILJS_PUBLIC_KEY});
+        const lv=getLevel(scores.global);
+        const dimRows=["QJS","RDS","ADS","VAL"].map(k=>{
+          const d=DIMS[k],p=scores[k],dlv=getLevel(p),prof=getDimProfile(k,p);
+          return`<div style="margin-bottom:14px;padding:14px;border-radius:10px;background:#fff;border:1px solid ${d.border};border-left:4px solid ${d.color};">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+  <span style="font-size:13px;font-weight:bold;color:${d.color};">${d.icon} ${d.label}</span>
+  <span style="font-size:18px;font-weight:bold;color:${d.color};">${p}%</span>
+</div>
+<div style="background:#e0d8d0;border-radius:4px;height:6px;overflow:hidden;margin-bottom:10px;">
+  <div style="height:6px;width:${p}%;background:${d.color};border-radius:4px;"></div>
+</div>
+<div style="font-size:10px;font-weight:bold;color:${dlv.color};margin-bottom:5px;">${dlv.label} — ${prof.titre}</div>
+<p style="font-size:11px;color:#6b5246;font-style:italic;line-height:1.7;margin:0;">${prof.texte}</p>
+</div>`;
+        }).join("");
+        const insightRows=insights.map(it=>`<div style="margin-bottom:10px;padding:12px 14px;border-radius:10px;background:${it.bg};border:1px solid ${it.border};">
+<div style="font-size:12px;font-weight:bold;color:${it.color};margin-bottom:5px;">${it.icon} ${it.title}</div>
+<p style="font-size:11px;color:#6b5246;font-style:italic;line-height:1.7;margin:0;">${it.body}</p>
+</div>`).join("");
+        const html=`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"/></head>
+<body style="font-family:Georgia,serif;background:#F0ECE6;padding:32px 24px;color:#2a1f1a;max-width:640px;margin:0 auto;">
+<h2 style="font-size:22px;margin:0 0 4px;">Estime de soi${prenom?" — "+prenom:""}</h2>
+<p style="font-size:13px;color:#6b5246;font-style:italic;margin:0 0 24px;">Résultats — 32 questions · 4 dimensions</p>
+<div style="background:#fff;border-radius:12px;padding:20px;margin-bottom:16px;border:2px solid ${lv.color}30;text-align:center;">
+  <div style="font-size:34px;font-weight:bold;color:${lv.color};margin-bottom:4px;">${scores.global}%</div>
+  <div style="font-size:12px;font-weight:bold;color:${lv.color};margin-bottom:2px;">${lv.label}</div>
+  <div style="font-size:11px;color:#6b5246;font-style:italic;">Score global d'estime de soi</div>
+</div>
+<div style="background:#fff;border-radius:12px;padding:20px;margin-bottom:16px;border:1px solid #e8ddd4;">
+  <div style="font-size:14px;font-weight:bold;margin-bottom:14px;">📐 Le triangle de l'estime de soi</div>
+  ${dimRows}
+</div>
+<div style="background:#fff;border-radius:12px;padding:20px;margin-bottom:16px;border:1px solid #e8ddd4;">
+  <div style="font-size:14px;font-weight:bold;margin-bottom:12px;">🔎 Ce que tes réponses révèlent</div>
+  ${insightRows}
+</div>
+<p style="font-size:11px;color:#aaa;font-style:italic;line-height:1.7;">⚠️ Ces résultats sont indicatifs. Ils ne constituent pas un diagnostic clinique.</p>
+<div style="background:linear-gradient(135deg,#fdf6ed,#f5ece0);border-radius:14px;padding:24px;margin-top:20px;border:1px solid #e0c9a8;text-align:center;">
+  <div style="font-size:28px;margin-bottom:8px;">🌱</div>
+  <div style="font-size:15px;font-weight:bold;color:#8B6F5E;margin-bottom:10px;">Tu veux aller plus loin ?</div>
+  <p style="font-size:12px;color:#6b5246;line-height:1.8;margin-bottom:18px;font-style:italic;">L'estime de soi se travaille — pas en se forçant à penser du bien de soi, mais en réapprenant à se regarder avec justesse. Si tu souhaites explorer ces dimensions en profondeur, je suis là pour ça.</p>
+  <a href="https://resalib.fr/p/123056" style="display:inline-block;padding:13px 28px;border-radius:24px;background:#8B6F5E;color:#fff;font-size:13px;font-weight:bold;text-decoration:none;">📞 Réserver mon appel découverte gratuit</a>
+</div>
+</body></html>`;
+        window.emailjs.send(EMAILJS_SERVICE_ID,EMAILJS_TEMPLATE_ID,{to_email:email,prenom_client:prenom||"",html_content:html})
+          .then(()=>setSendStatus("success"))
+          .catch(err=>{setEmailError(`${err?.status||""} — ${err?.text||err?.message||JSON.stringify(err)}`);setSendStatus("error");});
+      }catch(e){setEmailError(String(e));setSendStatus("error");}
+    };
+
+    return(
+      <div className="fade-up">
+
+        {/* Score global */}
+        <div style={{background:"#fff",borderRadius:12,padding:20,marginBottom:14,border:"1px solid #e8ddd4"}}>
+          <GlobalGauge pct={scores.global}/>
+        </div>
+
+        {/* Triangle */}
+        <div style={{background:"#fff",borderRadius:12,padding:20,marginBottom:14,border:"1px solid #e8ddd4"}}>
+          <div style={{fontSize:13,fontWeight:"bold",color:DARK,marginBottom:4}}>📐 Le triangle de l'estime de soi</div>
+          <div style={{fontSize:11,color:MID,fontStyle:"italic",marginBottom:16,lineHeight:1.6}}>Les 3 dimensions fondamentales. Plus la zone colorée est proche des sommets, plus l'estime est solide dans cette dimension.</div>
+          <TriangleChart scores={scores}/>
+          <div style={{marginTop:16}}>
+            {["QJS","RDS","ADS"].map(k=><ScoreBar key={k} dimId={k} pct={scores[k]}/>)}
+          </div>
+        </div>
+
+        {/* Boussole des valeurs */}
+        <div style={{background:"#fff",borderRadius:12,padding:20,marginBottom:14,border:`1px solid ${DIMS.VAL.border}`}}>
+          <div style={{fontSize:13,fontWeight:"bold",color:DARK,marginBottom:4}}>🧿 La boussole des valeurs</div>
+          <div style={{fontSize:11,color:MID,fontStyle:"italic",marginBottom:14,lineHeight:1.6}}>
+            L'estime de soi baisse quand on s'éloigne de ses valeurs — et remonte quand on prend des risques alignés avec elles. Rester dans sa zone de confort préserve de l'anxiété, mais fait baisser l'estime sur le long terme.
+          </div>
+          <ScoreBar dimId="VAL" pct={scores.VAL}/>
+        </div>
+
+        {/* Bilan par dimension */}
+        <div style={{background:"#fff",borderRadius:12,padding:20,marginBottom:14,border:"1px solid #e8ddd4"}}>
+          <div style={{fontSize:13,fontWeight:"bold",color:DARK,marginBottom:14}}>🔬 Bilan dimension par dimension</div>
+          {["QJS","RDS","ADS","VAL"].map(k=><DimCard key={k} dimId={k} pct={scores[k]}/>)}
+        </div>
+
+        {/* Insights croisés */}
+        <div style={{background:"#fff",borderRadius:12,padding:20,marginBottom:14,border:"1px solid #e8ddd4"}}>
+          <div style={{fontSize:13,fontWeight:"bold",color:DARK,marginBottom:4}}>🔎 Ce que tes réponses révèlent</div>
+          <div style={{fontSize:11,color:MID,fontStyle:"italic",marginBottom:14,lineHeight:1.6}}>Lectures croisées issues de l'analyse de l'ensemble de tes réponses.</div>
+          {insights.map((it,i)=>(
+            <div key={i} style={{marginBottom:10,padding:"12px 14px",borderRadius:10,background:it.bg,border:`1px solid ${it.border}`}}>
+              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
+                <span style={{fontSize:15}}>{it.icon}</span>
+                <span style={{fontSize:12,fontWeight:"bold",color:it.color}}>{it.title}</span>
+              </div>
+              <p style={{fontSize:11,color:MID,lineHeight:1.75,margin:0}}>{it.body}</p>
+            </div>
+          ))}
+        </div>
+
+        <div style={{padding:"12px 16px",borderRadius:8,background:"#fff8f0",border:"1px solid #f0e0c8",fontSize:11,color:MID,fontStyle:"italic",lineHeight:1.7,marginBottom:20}}>
+          ⚠️ Ces résultats sont indicatifs et basés sur tes propres réponses. Ils ne constituent pas un diagnostic clinique et ne remplacent pas un accompagnement professionnel.
+        </div>
+
+        {/* CTA */}
+        <div style={{background:"linear-gradient(135deg,#fdf6ed,#f5ece0)",borderRadius:14,padding:22,marginBottom:14,border:`1px solid ${ACCENT}40`,textAlign:"center"}}>
+          <div style={{fontSize:20,marginBottom:8}}>🌱</div>
+          <div style={{fontSize:14,fontWeight:"bold",color:ACCENT,marginBottom:10}}>Tu veux aller plus loin ?</div>
+          <p style={{fontSize:12,color:MID,lineHeight:1.8,marginBottom:16,fontStyle:"italic"}}>
+            L'estime de soi se travaille — pas en se forçant à penser du bien de soi, mais en réapprenant à se regarder avec justesse. Si tu souhaites explorer ces dimensions plus en profondeur, je suis là pour ça.
+          </p>
+          <a href="https://resalib.fr/p/123056" target="_blank" rel="noopener noreferrer"
+            style={{display:"inline-block",padding:"13px 28px",borderRadius:24,background:ACCENT,color:"#fff",fontSize:13,fontWeight:"bold",textDecoration:"none",boxShadow:`0 4px 14px ${ACCENT}40`}}>
+            📞 Réserver mon appel découverte gratuit
+          </a>
+        </div>
+
+        {/* Email */}
+        <div style={{background:"#fff",borderRadius:12,padding:20,border:"1px solid #e8ddd4"}}>
+          <div style={{fontSize:13,fontWeight:"bold",color:DARK,marginBottom:4}}>📧 Recevoir mes résultats par e-mail</div>
+          {email
+            ?<div style={{fontSize:12,color:MID,marginBottom:14}}>Les résultats seront envoyés à <b>{email}</b>.</div>
+            :<div style={{fontSize:12,color:"#F57C00",marginBottom:14}}>⚠️ Aucune adresse e-mail renseignée.</div>
+          }
+          {sendStatus!=="success"&&(
+            <button onClick={sendEmail} disabled={sendStatus==="sending"}
+              style={{padding:"11px 24px",borderRadius:24,border:"none",background:sendStatus==="sending"?"#ccc":ACCENT,color:"#fff",fontSize:14,fontWeight:"bold",transition:"background 0.2s"}}>
+              {sendStatus==="sending"?"📨 Envoi en cours…":"📧 Envoyer mes résultats"}
+            </button>
+          )}
+          {sendStatus==="success"&&<div style={{display:"flex",alignItems:"center",gap:8,color:"#4CAF50",fontSize:13}}><span style={{fontSize:18}}>✓</span> Résultats envoyés à {email}</div>}
+          {sendStatus==="error"&&(
+            <div style={{marginTop:10,fontSize:12,color:"#E53935",background:"#ffebee",borderRadius:8,padding:"12px 14px",lineHeight:1.8}}>
+              <b>✗ Envoi échoué.</b>
+              {emailError&&<div style={{marginTop:6,fontFamily:"monospace",fontSize:11,background:"#fff0f0",padding:"6px 10px",borderRadius:6,color:"#c62828"}}>{emailError}</div>}
+              <span onClick={sendEmail} style={{textDecoration:"underline",cursor:"pointer",marginTop:8,display:"inline-block",color:ACCENT}}>↺ Réessayer</span>
+            </div>
+          )}
+          {sendStatus==="no-email"&&<div style={{marginTop:10,fontSize:12,color:"#F57C00",background:"#fff8f0",borderRadius:8,padding:"10px 14px"}}>⚠️ Renseigne ton e-mail à l'étape 1.</div>}
+        </div>
+
+      </div>
+    );
+  }
+
+  function App(){
+    const [step,setStep]=useState(0);
+    const [prenom,setPrenom]=useState("");
+    const [email,setEmail]=useState("");
+    const [answers,setAnswers]=useState({});
+    const topRef=useRef(null);
+    const N=THEMES.length;
+
+    useEffect(()=>{ if(topRef.current)topRef.current.scrollIntoView({behavior:"smooth"}); },[step]);
+
+    const currentTheme=step>=1&&step<=N?THEMES[step-1]:null;
+    const themeAnswered=currentTheme?currentTheme.questions.every(q=>answers[q.id]!==undefined):true;
+    const scores=step===N+1?computeScores(answers):null;
+
+    return(
+      <div ref={topRef} style={{minHeight:"100vh",background:BG,padding:"32px 16px",fontFamily:"Georgia,serif"}}>
+        <div style={{maxWidth:640,margin:"0 auto"}}>
+
+          <div style={{marginBottom:step===0?28:16}}>
+            {step===0?(
+              <>
+                <div style={{fontSize:24,fontWeight:"bold",color:DARK,marginBottom:4}}>Estime de soi</div>
+                <div style={{fontSize:13,color:MID,fontStyle:"italic",lineHeight:1.6}}>32 questions · 4 dimensions · Triangle & boussole des valeurs</div>
+              </>
+            ):step<=N?<ProgressBar step={step} total={N}/>:null}
+          </div>
+
+          {step===0&&(
+            <div className="fade-up">
+              <div style={{background:"#fff",borderRadius:12,padding:22,marginBottom:16,border:"1px solid #e8ddd4"}}>
+                <p style={{fontSize:13,color:DARK,lineHeight:1.9,marginBottom:16}}>
+                  L'<b>estime de soi</b> n'est pas figée — elle monte et descend au quotidien selon nos actions, nos relations et notre accord avec nos valeurs profondes. Ce questionnaire explore les 3 dimensions du triangle de l'estime de soi, plus la boussole des valeurs comme régulateur central.
+                </p>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:16}}>
+                  {Object.values(DIMS).map(d=>(
+                    <div key={d.id} style={{padding:"10px 12px",borderRadius:10,background:d.light,border:`1px solid ${d.border}`,display:"flex",alignItems:"center",gap:8}}>
+                      <span style={{fontSize:16}}>{d.icon}</span>
+                      <div style={{fontSize:11,fontWeight:"bold",color:d.color}}>{d.label}</div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{padding:"10px 14px",borderRadius:8,background:"#f5f0ed",border:`1px solid ${ACCENT}30`,fontSize:12,color:MID,lineHeight:1.7}}>
+                  📐 Inspiré du <b>triangle de l'estime de soi</b> (Qui je suis · Regard sur soi · Amour de soi) et de la <b>boussole des valeurs</b> — ce qui nous sert de Nord intérieur au quotidien.
+                </div>
+              </div>
+
+              <div style={{background:BG2,borderRadius:12,padding:20,marginBottom:16,border:"1px solid #e8ddd4"}}>
+                <div style={{fontSize:13,fontWeight:"bold",color:DARK,marginBottom:14}}>Quelques infos pour personnaliser tes résultats</div>
+                <div style={{marginBottom:12}}>
+                  <div style={{fontSize:12,color:MID,marginBottom:4,fontWeight:"bold"}}>Prénom</div>
+                  <input value={prenom} onChange={e=>setPrenom(e.target.value)} placeholder="Ton prénom..."
+                    style={{width:"100%",padding:"10px 14px",borderRadius:8,border:"1.5px solid #e0d4c8",background:"#fff",fontSize:14,color:DARK,outline:"none"}}/>
+                </div>
+                <div>
+                  <div style={{fontSize:12,color:MID,marginBottom:4,fontWeight:"bold"}}>Adresse e-mail</div>
+                  <input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="ton@email.com"
+                    style={{width:"100%",padding:"10px 14px",borderRadius:8,border:"1.5px solid #e0d4c8",background:"#fff",fontSize:14,color:DARK,outline:"none"}}/>
+                  <div style={{display:"flex",alignItems:"center",gap:6,marginTop:8,background:"#f0fdf4",borderRadius:8,padding:"8px 12px"}}>
+                    <span>🔒</span>
+                    <span style={{fontSize:11,color:"#4CAF50",fontStyle:"italic"}}>Uniquement pour t'envoyer tes résultats. Aucun spam.</span>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{fontSize:12,color:LIGHT,fontStyle:"italic",marginBottom:16,lineHeight:1.7,padding:"10px 14px",background:"#fff",borderRadius:8,border:"1px solid #e8ddd4"}}>
+                ℹ️ Réponds spontanément avec ta première impression — il n'y a pas de bonnes ou mauvaises réponses. Le questionnaire prend environ 8 minutes.
+              </div>
+            </div>
+          )}
+
+          {currentTheme&&(
+            <div className="fade-up" key={step}>
+              <div style={{marginBottom:22,padding:"14px 16px",background:"#fff",borderRadius:10,border:`1px solid ${DIMS[currentTheme.id].border}`,borderLeft:`4px solid ${DIMS[currentTheme.id].color}`}}>
+                <div style={{fontSize:15,fontWeight:"bold",color:DARK,marginBottom:3}}>{currentTheme.icon} {currentTheme.title}</div>
+                <div style={{fontSize:12,color:MID,fontStyle:"italic"}}>{currentTheme.subtitle}</div>
+              </div>
+              {currentTheme.questions.map((q,i)=>(
+                <LikertQuestion key={q.id} question={q} value={answers[q.id]} onChange={val=>setAnswers(a=>({...a,[q.id]:val}))} index={i}/>
+              ))}
+              {!themeAnswered&&<div style={{fontSize:12,color:"#F57C00",fontStyle:"italic",marginBottom:12}}>⚠️ Réponds à toutes les affirmations pour continuer.</div>}
+            </div>
+          )}
+
+          {step===N+1&&scores&&<Results scores={scores} prenom={prenom} email={email}/>}
+
+          {step<=N&&(
+            <div style={{display:"flex",justifyContent:"space-between",marginTop:24}}>
+              {step>0?<button onClick={()=>setStep(s=>s-1)} style={{padding:"12px 24px",borderRadius:24,border:"1.5px solid #e0d4c8",background:"#fff",color:MID,fontSize:14}}>← Retour</button>:<div/>}
+              <button onClick={()=>setStep(s=>s+1)} disabled={!themeAnswered&&step>0}
+                style={{padding:"12px 28px",borderRadius:24,border:"none",background:(!themeAnswered&&step>0)?"#e0d4c8":ACCENT,color:"#fff",fontSize:14,fontWeight:"bold",opacity:(!themeAnswered&&step>0)?0.6:1,transition:"all 0.2s"}}>
+                {step===0?"Commencer →":step===N?"Voir mes résultats →":"Continuer →"}
+              </button>
+            </div>
+          )}
+          {step===N+1&&(
+            <div style={{marginTop:24,textAlign:"center"}}>
+              <button onClick={()=>{setStep(0);setAnswers({});}} style={{padding:"12px 28px",borderRadius:24,border:`1.5px solid ${ACCENT}`,background:"transparent",color:ACCENT,fontSize:14}}>
+                ↺ Recommencer
+              </button>
+            </div>
+          )}
+
+        </div>
+      </div>
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
